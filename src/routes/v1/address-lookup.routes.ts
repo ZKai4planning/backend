@@ -7,6 +7,6 @@ const router = express.Router();
 router.post("/", createAddressLookup);
 router.get("/postcode/:postcode", getAddressesByPostcode);
 
-router.get("/by-uprn", getAddressDetailsByUprn);
+router.get("/by-uprn/:uprn", getAddressDetailsByUprn);
 
 export default router;

@@ -12,7 +12,7 @@ router.post("/request-otp", requestOtp);
 router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
 
-router.get("/users", getUsersPaginated)
+router.get("/", getUsersPaginated)
 router.put("/:userId/status", updateUserStatusByUserId);
 
 

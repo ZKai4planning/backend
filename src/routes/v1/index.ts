@@ -14,6 +14,8 @@ import loginroutes from "./adminauth.routes";
 const router = Router();
 
 router.use("/auth", authRoutes);
+router.use("/users", authRoutes);
+
 
 router.use("/profile", profileRoutes);
 router.use("/services", serviceRoutes);
