@@ -12,9 +12,7 @@
   "tags": [
     { "name": "Admin Users" },
     { "name": "Admin Auth" },
-
     { "name": "Admin Analytics" },
-
     { "name": "Configuration" },
     { "name": "Roles" },
     { "name": "Services" },
@@ -131,7 +129,7 @@
       }
     },
 
-    "/admin/{userId}/toggle-status": {
+    "/admin/{userId}/status": {
       "patch": {
         "tags": ["Admin Users"],
         "summary": "Activate / Inactivate admin",
@@ -296,25 +294,7 @@
 
     "/auth/send-otp": {
       "post": {
-        "tags": ["Client Auth"],
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": { "email": { "example": "any" } }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "OK" },
-          "400": { "description": "Bad Request" }
-        }
-      }
-    },
-    "/auth/verify-otp": {
-      "post": {
+        "description": "",
         "tags": ["Client Auth"],
         "parameters": [
           {
@@ -323,15 +303,106 @@
             "schema": {
               "type": "object",
               "properties": {
-                "email": { "example": "any" },
-                "otp": { "example": "any" }
+                "identifier": {
+                  "example": "any"
+                }
               }
             }
           }
         ],
         "responses": {
-          "200": { "description": "OK" },
-          "400": { "description": "Bad Request" }
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "423": {
+            "description": "Locked"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/auth/verify-otp": {
+      "post": {
+        "description": "",
+         "tags": ["Client Auth"],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "identifier": {
+                  "example": "any"
+                },
+                "otp": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "423": {
+            "description": "Locked"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/auth/resend-otp": {
+      "post": {
+        "description": "",
+         "tags": ["Client Auth"],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "identifier": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "423": {
+            "description": "Locked"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
         }
       }
     },

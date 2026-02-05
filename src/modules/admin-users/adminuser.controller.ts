@@ -349,7 +349,11 @@ export const verifyOtp = async (req: Request, res: Response) => {
     admin.lastLoginAt = new Date();
     await admin.save();
 
-    const token = generateToken({ userId: admin.userId });
+    const token = generateToken({
+      userId: admin.userId,
+      role: "admin",
+      roleId: admin.roleId,
+    });
 
     if (
       admin.passwordStatus === -1 ||

@@ -3,12 +3,14 @@ import jwt from "jsonwebtoken";
 
 interface JwtPayload {
   userId: string;
+  role?: string;
+  roleId?: string;
 }
 
 declare global {
   namespace Express {
     interface Request {
-      user?: { userId: string };
+      user?: { userId: string; role?: string; roleId?: string };
     }
   }
 }
@@ -27,7 +29,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     const decoded = jwt.verify(token, secret) as JwtPayload;
 
     // Attach userId to request object
-    req.user = { userId: decoded.userId };
+    req.user = { userId: decoded.userId, role: decoded.role, roleId: decoded.roleId };
 
     next();
   } catch (err) {
