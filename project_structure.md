@@ -1,12 +1,12 @@
 # 📁 nodejs - Project Structure
 
-*Generated on: 2/2/2026, 2:52:08 PM*
+*Generated on: 2/5/2026, 11:33:27 AM*
 
 ## 📋 Quick Overview
 
 | Metric | Value |
 |--------|-------|
-| 📄 Total Files | 96 |
+| 📄 Total Files | 95 |
 | 📁 Total Folders | 32 |
 | 🌳 Max Depth | 4 levels |
 | 🛠️ Tech Stack | TypeScript, Node.js, Docker |
@@ -24,26 +24,26 @@
 
 ### By File Type
 
-- 🔷 **.ts** (TypeScript files): 71 files (74.0%)
-- 📄 **.** (Other files): 10 files (10.4%)
-- ⚙️ **.json** (JSON files): 8 files (8.3%)
-- 📄 **.txt** (Text files): 2 files (2.1%)
+- 🔷 **.ts** (TypeScript files): 71 files (74.7%)
+- 📄 **.** (Other files): 10 files (10.5%)
+- ⚙️ **.json** (JSON files): 8 files (8.4%)
 - 📄 **.key** (Other files): 2 files (2.1%)
-- 🚫 **.gitignore** (Git ignore): 1 files (1.0%)
-- ⚙️ **.yml** (YAML files): 1 files (1.0%)
-- 🐳 **.dockerfile** (Docker files): 1 files (1.0%)
+- 🚫 **.gitignore** (Git ignore): 1 files (1.1%)
+- ⚙️ **.yml** (YAML files): 1 files (1.1%)
+- 🐳 **.dockerfile** (Docker files): 1 files (1.1%)
+- 📄 **.txt** (Text files): 1 files (1.1%)
 
 ### By Category
 
-- **TypeScript**: 71 files (74.0%)
-- **Other**: 12 files (12.5%)
-- **Config**: 9 files (9.4%)
+- **TypeScript**: 71 files (74.7%)
+- **Other**: 12 files (12.6%)
+- **Config**: 9 files (9.5%)
 - **DevOps**: 2 files (2.1%)
-- **Docs**: 2 files (2.1%)
+- **Docs**: 1 files (1.1%)
 
 ### 📁 Largest Directories
 
-- **root**: 96 files
+- **root**: 95 files
 - **src**: 54 files
 - **__MACOSX**: 35 files
 - **__MACOSX\src**: 30 files
@@ -101,7 +101,6 @@ nodejs/
 ├── 🟡 🚫 **.gitignore**
 ├── 🟡 🐳 **docker-compose.yml**
 ├── 🟡 🐳 **Dockerfile**
-├── 📄 install.txt
 ├── 🟡 🔒 **package-lock.json**
 ├── 🔴 📦 **package.json**
 ├── 📁 src/
@@ -189,10 +188,10 @@ nodejs/
 - 🚫 DevOps: Git ignore
 - ⚙️ Config: YAML files
 - 🐳 DevOps: Docker files
-- 📄 Docs: Text files
 - ⚙️ Config: JSON files
 - 🔷 TypeScript: TypeScript files
 - 📄 Other: Other files
+- 📄 Docs: Text files
 
 ### Importance Levels
 - 🔴 Critical: Essential project files

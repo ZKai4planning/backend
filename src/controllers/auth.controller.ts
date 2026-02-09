@@ -7,175 +7,163 @@ import { generateId } from "../utils/generators";
 import { User } from "../modules/client-users/user.model";
 import { UserProfile } from "../modules/client-user-profiles/userprofile.model";
 import { generateToken } from "../utils/jwt";
+import { isValidEmail, isValidPhone } from "../utils/validators";
+import { isAccountLocked } from "../utils/auth";
+import { MAX_OTP_ATTEMPTS, OTP_LOCK_DURATION_MS } from "../constants/auth";
 
 const logger = log("AuthController");
 
 
-// export const sendOtp = async (req: Request, res: Response) => {
-//   const { email } = req.body;
-
-//   if (!email) {
-//     logger.warn("OTP request without email");
-//     return res.status(400).json({ success: false, message: "Email is required" });
-//   }
-
-//   logger.info(`OTP request received for ${email}`);
-
-//   const otp = generateOTP();
-//   await saveOtp(email, otp);
-
-//   logger.debug("OTP generated and stored");
-
-//   await sendOtpEmail(email, otp);
-
-//   res.json({ success: true, message: "OTP sent" });
-// };
-
-
-// export const verifyOtpHandler = async (
-//   req: Request,
-//   res: Response
-// ) => {
-//   const { email, otp } = req.body;
-
-//   logger.info(`OTP verification attempt for ${email}`);
-
-//   const isValid = await verifyOtp(email, otp);
-
-//   if (!isValid) {
-//     logger.warn(`Invalid OTP attempt for ${email}`);
-//     return res.status(400).json({
-//       success: false,
-//       message: "Invalid OTP",
-//     });
-//   }
-
-//   logger.info(`OTP verified successfully for ${email}`);
-
-//   res.json({ success: true, message: "OTP verified" });
-// };
-
-
-
 export const sendOtp = async (req: Request, res: Response) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      logger.warn("OTP request without email");
-      return res.status(400).json({ success: false, message: "Email is required" });
-    }
-
-    logger.info(`OTP request received for ${email}`);
-
-    // 1. Find existing user
-    let user = await User.findOne({ email });
-
-    // 2. If user does not exist → create user + profile
-    if (!user) {
-      const userId = await generateId();
-      const profileId = await generateId();
-
-      user = await User.create({
-        userId,
-        email,
-        status: 0, // new user
-      });
-
-      await UserProfile.create({
-        profileId,
-        userRefId: userId,
-        fullName: "",
-        bio: "",
-        profilePicture: "",
-      });
-
-      logger.info(`New user created for ${email}`);
-    }
-
-    // 3. Generate OTP
-    const otp = generateOTP();
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-    user.otp = otp;
-    user.otpExpiresAt = expiresAt;
-    await user.save();
-
-    logger.debug(`OTP generated for ${email}`);
-
-    // 4. Send OTP
-    await sendOtpEmail(email, otp);
-
-    res.json({
-      success: true,
-      message: "OTP sent successfully",
-      isNewUser: user.status === 0,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
+ try {
+     const { identifier } = req.body;
+ 
+     if (!identifier) {
+       return res.status(400).json({ message: "Email or phone required" });
+     }
+ 
+     let query: any = {};
+     let type: "email" | "phone";
+ 
+     if (isValidEmail(identifier)) {
+       query.email = identifier;
+       type = "email";
+     } else if (isValidPhone(identifier)) {
+       query.phoneNumber = identifier;
+       type = "phone";
+     } else {
+       return res.status(400).json({ message: "Invalid email or phone format" });
+     }
+ 
+     let user = await User.findOne(query);
+ 
+     if (user) {
+       // 🔒 Check lock
+       if (isAccountLocked(user)) {
+         return res.status(423).json({
+           message: "Account locked due to multiple failed OTP attempts. Try again later.",
+           lockUntil: user.lockUntil,
+         });
+       }
+ 
+       // 🧹 Auto-unlock if expired
+       if (user.lockUntil && user.lockUntil <= new Date()) {
+         user.lockUntil = null;
+         user.loginAttempts = 0;
+       }
+     }
+ 
+     if (!user) {
+       const userId = await generateId();
+       const profileId = await generateId();
+ 
+       user = await User.create({
+         userId,
+         email: type === "email" ? identifier : undefined,
+         phoneNumber: type === "phone" ? identifier : undefined,
+       });
+ 
+       await UserProfile.create({
+         profileId,
+         userRefId: user.userId,
+         fullName: "",
+         bio: "",
+         profilePicture: "",
+       });
+     }
+ 
+     const otp = generateOTP();
+     const expires = new Date(Date.now() + 5 * 60 * 1000);
+ 
+     user.otp = otp; 
+     user.otpExpiresAt = expires;
+     await user.save();
+ 
+     // ❌ remove in prod
+     console.log("OTP (for testing):", otp);
+ 
+     res.json({
+       message: "OTP sent successfully",
+       userId: user.userId,
+     });
+   } catch (err) {
+     console.error(err);
+     res.status(500).json({ message: "Server error" });
+   }
+ };
 
 
 
 
 export const verifyOtpHandler = async (req: Request, res: Response) => {
-  try {
-    const { email, otp } = req.body;
+ try {
+    const { identifier, otp } = req.body;
 
-    if (!email || !otp) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and OTP are required",
-      });
+    if (!identifier || !otp) {
+      return res.status(400).json({ message: "Identifier and OTP required" });
     }
 
-    logger.info(`OTP verification attempt for ${email}`);
-
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [{ email: identifier }, { phoneNumber: identifier }],
+    });
 
     if (!user) {
-      logger.warn(`User not found for ${email}`);
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 🔒 Check lock
+    if (isAccountLocked(user)) {
+      return res.status(423).json({
+        message: "Account locked due to multiple failed OTP attempts",
+        lockUntil: user.lockUntil,
       });
     }
 
-    // Validate OTP
-    if (
+    const isOtpInvalid =
       user.otp !== otp ||
       !user.otpExpiresAt ||
-      user.otpExpiresAt < new Date()
-    ) {
-      logger.warn(`Invalid or expired OTP for ${email}`);
-      return res.status(400).json({
-        success: false,
+      user.otpExpiresAt < new Date();
+
+    if (isOtpInvalid) {
+      user.loginAttempts += 1;
+
+      // 🚫 Lock if max attempts reached
+      if (user.loginAttempts >= MAX_OTP_ATTEMPTS) {
+        user.lockUntil = new Date(Date.now() + OTP_LOCK_DURATION_MS);
+      }
+
+      await user.save();
+
+      return res.status(401).json({
         message: "Invalid or expired OTP",
+        remainingAttempts: Math.max(
+          MAX_OTP_ATTEMPTS - user.loginAttempts,
+          0
+        ),
       });
     }
 
-    // OTP valid → activate user
-    user.status = 1;
+    // ✅ OTP is valid → reset everything
     user.otp = null;
     user.otpExpiresAt = null;
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+    user.lastLoginAt = new Date();
+    user.isActive = true;
+
     await user.save();
 
     const token = generateToken({
       userId: user.userId,
     });
 
-    logger.info(`OTP verified successfully for ${email}`);
-
     res.json({
-      success: true,
-      message: "OTP verified successfully",
+      message: "Login successful",
       token,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -183,49 +171,46 @@ export const verifyOtpHandler = async (req: Request, res: Response) => {
 
 export const resendOtp = async (req: Request, res: Response) => {
   try {
-    const { email } = req.body;
+    const { identifier } = req.body;
 
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is required",
-      });
+    if (!identifier) {
+      return res.status(400).json({ message: "Email or phone required" });
     }
 
-    logger.info(`Resend OTP request for ${email}`);
-
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [{ email: identifier }, { phoneNumber: identifier }],
+    });
 
     if (!user) {
-      logger.warn(`Resend OTP attempted for non-existing user: ${email}`);
       return res.status(404).json({
-        success: false,
         message: "User not found. Please request OTP first.",
       });
     }
 
+    if (isAccountLocked(user)) {
+  return res.status(423).json({
+    message: "Account locked. Cannot resend OTP.",
+    lockUntil: user.lockUntil,
+  });
+}
+
+
     // Generate new OTP
     const otp = generateOTP();
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const expires = new Date(Date.now() + 5 * 60 * 1000);
 
     user.otp = otp;
-    user.otpExpiresAt = expiresAt;
+    user.otpExpiresAt = expires;
     await user.save();
 
-    logger.debug(`New OTP generated for ${email}`);
-
-    // Send OTP
-    await sendOtpEmail(email, otp);
+    console.log("Resent OTP:", otp);
 
     res.json({
-      success: true,
       message: "OTP resent successfully",
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
+

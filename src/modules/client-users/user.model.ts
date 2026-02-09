@@ -1,14 +1,17 @@
 import mongoose from "mongoose";
 
 export interface IUser {
-  userId: string; // 👈 custom ID
+  userId: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   otp: string | null;
-otpExpiresAt: Date | null;
-status: 0 | 1;
-
-
+  otpExpiresAt: Date | null;
+  lastLoginAt?: Date;
+  loginAttempts: number;
+  lockUntil?: Date | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const userSchema = new mongoose.Schema<IUser>(
@@ -23,19 +26,31 @@ const userSchema = new mongoose.Schema<IUser>(
     email: {
       type: String,
       unique: true,
+      sparse: true,
     },
 
     phoneNumber: {
       type: String,
       unique: true,
+      sparse: true, // allows multiple null / missing values
     },
 
     otp: { type: String, default: null },
     otpExpiresAt: { type: Date, default: null },
-    status: {
-     type: Number,
-  enum: [0, 1],
-  default: 0, 
+    lastLoginAt: {
+      type: Date,
+    },
+    loginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockUntil: {
+      type: Date,
+      default: null,
+    },
+    isActive: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true },
