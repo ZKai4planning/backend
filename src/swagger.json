@@ -511,6 +511,12 @@
         "description": "",
         "parameters": [
           {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "schema": {
@@ -520,6 +526,49 @@
                   "example": "any"
                 }
               }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/users/analytics": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/users/request-otp": {
+      "post": {
+        "description": "",
+        "tags": ["Client Auth"],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": { "email": { "example": "any" } }
             }
           }
         ],
@@ -546,12 +595,8 @@
             "schema": {
               "type": "object",
               "properties": {
-                "identifier": {
-                  "example": "any"
-                },
-                "otp": {
-                  "example": "any"
-                }
+                "email": { "example": "any" },
+                "otp": { "example": "any" }
               }
             }
           }

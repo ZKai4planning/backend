@@ -4,7 +4,8 @@ import { User } from "./user.model";
 import { generateOTP, generateId } from "../../utils/generators";
 import { UserProfile } from "../client-user-profiles/userprofile.model";
 import { generateToken } from "../../utils/jwt";
-
+import { MAX_OTP_ATTEMPTS, OTP_LOCK_DURATION_MS } from "../../constants/auth";
+import { isAccountLocked } from "../../utils/auth";
 
 
 export const requestOtp = async (req: Request, res: Response) => {
@@ -28,24 +29,36 @@ export const requestOtp = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid email or phone format" });
     }
 
-    // 1. Find existing user
     let user = await User.findOne(query);
 
-    // 2. If not exists → create new user
+    if (user) {
+      // 🔒 Check lock
+      if (isAccountLocked(user)) {
+        return res.status(423).json({
+          message: "Account locked due to multiple failed OTP attempts. Try again later.",
+          lockUntil: user.lockUntil,
+        });
+      }
+
+      // 🧹 Auto-unlock if expired
+      if (user.lockUntil && user.lockUntil <= new Date()) {
+        user.lockUntil = null;
+        user.loginAttempts = 0;
+      }
+    }
+
     if (!user) {
       const userId = await generateId();
-
       const profileId = await generateId();
 
       user = await User.create({
         userId,
         email: type === "email" ? identifier : undefined,
         phoneNumber: type === "phone" ? identifier : undefined,
-        status: 0,
       });
 
       await UserProfile.create({
-        profileId: profileId,
+        profileId,
         userRefId: user.userId,
         fullName: "",
         bio: "",
@@ -53,26 +66,26 @@ export const requestOtp = async (req: Request, res: Response) => {
       });
     }
 
-    // 3. Generate OTP
     const otp = generateOTP();
     const expires = new Date(Date.now() + 5 * 60 * 1000);
 
-    user.otp = otp;
+    user.otp = otp; // (we’ll hash later)
     user.otpExpiresAt = expires;
     await user.save();
 
+    // ❌ remove in prod
     console.log("OTP (for testing):", otp);
 
     res.json({
       message: "OTP sent successfully",
       userId: user.userId,
-      isNewUser: user.status === 0,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 export const verifyOtp = async (req: Request, res: Response) => {
   try {
@@ -90,25 +103,50 @@ export const verifyOtp = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // OTP validation
-    if (
-      user.otp !== otp ||
-      !user.otpExpiresAt ||
-      user.otpExpiresAt < new Date()
-    ) {
-      return res.status(401).json({ message: "Invalid or expired OTP" });
+    // 🔒 Check lock
+    if (isAccountLocked(user)) {
+      return res.status(423).json({
+        message: "Account locked due to multiple failed OTP attempts",
+        lockUntil: user.lockUntil,
+      });
     }
 
-    // OTP is valid → activate user
-    user.status = 0;
+    const isOtpInvalid =
+      user.otp !== otp ||
+      !user.otpExpiresAt ||
+      user.otpExpiresAt < new Date();
+
+    if (isOtpInvalid) {
+      user.loginAttempts += 1;
+
+      // 🚫 Lock if max attempts reached
+      if (user.loginAttempts >= MAX_OTP_ATTEMPTS) {
+        user.lockUntil = new Date(Date.now() + OTP_LOCK_DURATION_MS);
+      }
+
+      await user.save();
+
+      return res.status(401).json({
+        message: "Invalid or expired OTP",
+        remainingAttempts: Math.max(
+          MAX_OTP_ATTEMPTS - user.loginAttempts,
+          0
+        ),
+      });
+    }
+
+    // ✅ OTP is valid → reset everything
     user.otp = null;
     user.otpExpiresAt = null;
-    await user.save();
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+    user.lastLoginAt = new Date();
+    user.isActive = true;
 
+    await user.save();
 
     const token = generateToken({
       userId: user.userId,
-      
     });
 
     res.json({
@@ -120,6 +158,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 export const resendOtp = async (req: Request, res: Response) => {
   try {
@@ -138,6 +177,14 @@ export const resendOtp = async (req: Request, res: Response) => {
         message: "User not found. Please request OTP first.",
       });
     }
+
+    if (isAccountLocked(user)) {
+  return res.status(423).json({
+    message: "Account locked. Cannot resend OTP.",
+    lockUntil: user.lockUntil,
+  });
+}
+
 
     // Generate new OTP
     const otp = generateOTP();
@@ -196,7 +243,7 @@ export const updateUserStatusByUserId = async (
         email: user.email,
         phoneNumber: user.phoneNumber,
        
-        status: user.status,
+        status: user.isActive,
       },
     });
   } catch (error) {
