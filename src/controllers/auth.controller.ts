@@ -16,7 +16,7 @@ const logger = log("AuthController");
 
 export const sendOtp = async (req: Request, res: Response) => {
  try {
-     const { identifier } = req.body;
+     const { identifier, phoneNumber, fullName } = req.body;
  
      if (!identifier) {
        return res.status(400).json({ message: "Email or phone required" });
@@ -33,6 +33,16 @@ export const sendOtp = async (req: Request, res: Response) => {
        type = "phone";
      } else {
        return res.status(400).json({ message: "Invalid email or phone format" });
+     }
+
+     if (phoneNumber && !isValidPhone(phoneNumber)) {
+       return res.status(400).json({ message: "Invalid phone number format" });
+     }
+
+     if (type === "phone" && phoneNumber && phoneNumber !== identifier) {
+       return res.status(400).json({
+         message: "identifier and phoneNumber must match when identifier is a phone",
+       });
      }
  
      let user = await User.findOne(query);
@@ -56,31 +66,45 @@ export const sendOtp = async (req: Request, res: Response) => {
      if (!user) {
        const userId = await generateId();
        const profileId = await generateId();
+       const finalPhoneNumber =
+         type === "phone" ? identifier : phoneNumber || undefined;
+
+       if (finalPhoneNumber) {
+         const existingPhone = await User.findOne({ phoneNumber: finalPhoneNumber });
+         if (existingPhone) {
+           return res.status(400).json({ message: "Phone number already in use" });
+         }
+       }
  
        user = await User.create({
          userId,
          email: type === "email" ? identifier : undefined,
-         phoneNumber: type === "phone" ? identifier : undefined,
+         phoneNumber: finalPhoneNumber,
+         fullName: typeof fullName === "string" ? fullName.trim() : undefined,
        });
  
        await UserProfile.create({
          profileId,
          userRefId: user.userId,
-         fullName: "",
+         fullName: typeof fullName === "string" ? fullName.trim() : "",
          bio: "",
          profilePicture: "",
        });
      }
  
-     const otp = generateOTP();
-     const expires = new Date(Date.now() + 5 * 60 * 1000);
- 
-     user.otp = otp; 
-     user.otpExpiresAt = expires;
-     await user.save();
- 
-     // ❌ remove in prod
-     console.log("OTP (for testing):", otp);
+    const otp = generateOTP();
+    const expires = new Date(Date.now() + 5 * 60 * 1000);
+
+    user.otp = otp; 
+    user.otpExpiresAt = expires;
+    await user.save();
+
+    if (type === "email") {
+      await sendOtpEmail(identifier, otp);
+    } else {
+      // Phone OTP sending not implemented yet
+      console.log("OTP (for testing):", otp);
+    }
  
      res.json({
        message: "OTP sent successfully",

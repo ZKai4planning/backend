@@ -10,6 +10,7 @@ import { STATUS_CODES } from "http";
 import { config, email } from "zod";
 import { Role } from "../role-permissions/role.model";
 import { resendOtpSchema, resetPasswordSchema, updateAdminSchema, verifyAdminOtpSchema } from "../../schemas/adminuser";
+import { sendOtpEmail } from "../../services/email.service";
 // CREATE ADMIN
 export const createAdminUser = async (req: Request, res: Response) => {
   try {
@@ -115,7 +116,8 @@ export const updateAdminByUserId = async (req: Request, res: Response) => {
 
     // 2️⃣ Validate roleId (if provided)
     if (roleId) {
-      const role = await Role.findOne({ roleId, status: 1 });
+      // Status 0 is active per role defaults / create logic
+      const role = await Role.findOne({ roleId, status: 0 });
       if (!role) {
         return res.status(400).json({
           message: "Role does not exist or is inactive",
@@ -157,8 +159,6 @@ export const updateAdminByUserId = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 export const getAdminByUserId = async (req: Request, res: Response) => {
   try {
@@ -306,6 +306,8 @@ export const adminLogin = async (req: Request, res: Response) => {
 
     await admin.save();
 
+    await sendOtpEmail(admin.email, admin.otp);
+
     return res.status(200).json({
       message: "OTP sent successfully",
       userId: admin.userId,
@@ -408,6 +410,8 @@ export const resendOtp = async (req: Request, res: Response) => {
     admin.otp = generateOTP();
     admin.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
     await admin.save();
+
+    await sendOtpEmail(admin.email, admin.otp);
 
     res.json({
       message: "OTP resent successfully",

@@ -3,7 +3,7 @@ export const isValidEmail = (value: string) => {
 };
 
 export const isValidPhone = (value: string) => {
-  return /^[6-9]\d{9}$/.test(value); // Indian phone validation
+  return /^\+44\d{10}$/.test(value);
 };
 
 

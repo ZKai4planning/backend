@@ -2,8 +2,9 @@ import mongoose from "mongoose";
 
 export interface IUser {
   userId: string;
-  email: string;
+  email?: string;
   phoneNumber?: string;
+  fullName?: string;
   otp: string | null;
   otpExpiresAt: Date | null;
   lastLoginAt?: Date;
@@ -32,7 +33,12 @@ const userSchema = new mongoose.Schema<IUser>(
     phoneNumber: {
       type: String,
       unique: true,
-      sparse: true, // allows multiple null / missing values
+      sparse: true,
+    },
+
+    fullName: {
+      type: String,
+      trim: true,
     },
 
     otp: { type: String, default: null },
