@@ -28,6 +28,9 @@ const routeConfigs: RouteConfig[] = [
   { file: "./src/routes/v1/adminauth.routes.ts", prefix: "/admin/auth", tag: "Admin Auth" },
   { file: "./src/routes/v1/adminuser.routes.ts", prefix: "/admin/users", tag: "Admin Users" },
   { file: "./src/routes/v1/service.routes.ts", prefix: "/services", tag: "Services" },
+  { file: "./src/routes/v1/new.services.routes.ts", prefix: "/new-services", tag: "New Services" },
+  { file: "./src/routes/v1/subservices.routes.ts", prefix: "/subservices", tag: "Subservices" },
+  { file: "./src/routes/v1/service.analytics.routes.ts", prefix: "/service-analytics", tag: "Service Analytics" },
   { file: "./src/routes/v1/role.routes.ts", prefix: "/roles", tag: "Roles" },
   { file: "./src/routes/v1/address-lookup.routes.ts", prefix: "/address-lookup", tag: "Address Lookup" },
   { file: "./src/routes/v1/config.routes.ts", prefix: "/configuration", tag: "Configuration" },
@@ -67,6 +70,12 @@ const generate = async () => {
 
       Object.entries(ops as Record<string, any>).forEach(([method, spec]) => {
         if (spec && typeof spec === "object") {
+          const consumes = Array.isArray(spec.consumes) ? spec.consumes : [];
+          if (consumes.includes("multipart/form-data") && Array.isArray(spec.parameters)) {
+            spec.parameters = spec.parameters.filter(
+              (p: { in?: string }) => p && p.in !== "body"
+            );
+          }
           spec.tags = [cfg.tag];
         }
         merged.paths[fullPath][method] = spec;
