@@ -228,7 +228,18 @@ export const toggleAdminStatusByUserId = async (
 
 export const adminLogin = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, region } = req.body;
+
+    if (!region) {
+      return res.status(400).json({ message: "Region is required" });
+    }
+
+    const normalizedRegion =
+      typeof region === "string" ? region.trim().toLowerCase() : region;
+
+    if (normalizedRegion !== "in" && normalizedRegion !== "uk") {
+      return res.status(400).json({ message: "Region must be 'in' or 'uk'" });
+    }
 
     const config = await Configuration.findOne();
     if (!config) {
@@ -241,6 +252,10 @@ export const adminLogin = async (req: Request, res: Response) => {
 
     if (!admin) {
       return res.status(404).json({ message: "Account not found" });
+    }
+
+    if (admin.region !== normalizedRegion) {
+      return res.status(403).json({ message: "Account not in this region" });
     }
 
     /* =========================

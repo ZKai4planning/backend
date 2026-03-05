@@ -160,6 +160,8 @@ export const verifyOtp = async (req: Request, res: Response) => {
       });
     }
 
+    const isFirstLogin = !user.lastLoginAt;
+
     // ✅ OTP is valid → reset everything
     user.otp = null;
     user.otpExpiresAt = null;
@@ -177,6 +179,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
     res.json({
       message: "Login successful",
       token,
+      nextStep: isFirstLogin ? "PROFILE" : "DASHBOARD",
     });
   } catch (err) {
     console.error(err);

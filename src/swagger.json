@@ -460,6 +460,9 @@
                 },
                 "password": {
                   "example": "any"
+                },
+                "region": {
+                  "example": "any"
                 }
               }
             }
