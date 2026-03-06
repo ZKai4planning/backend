@@ -1,37 +1,36 @@
-version: "3.9"
-
 services:
   api:
-    container_name: mern-backend
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
+    container_name: express-api
+    restart: unless-stopped
     env_file:
       - .env
-    depends_on:
-      - mongo
-    restart: unless-stopped
-    volumes:
-      - ./logs:/app/logs
-    networks:
-      - mern-network
-
-  mongo:
-    image: mongo:7
-    container_name: mern-mongo
     ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-    restart: unless-stopped
+      - "5000:5000"
+    depends_on:
+      - mongodb
     networks:
-      - mern-network
+      - backend-network
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: securepassword
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend-network
 
 volumes:
-  mongo_data:
+  mongo-data:
 
 networks:
-  mern-network:
+  backend-network:
     driver: bridge
