@@ -76,12 +76,12 @@ export const createSubService = async (req: Request, res: Response) => {
   const files = (req.files as Express.Multer.File[]) || [];
 
   try {
-    const { serviceId, title, subtitle, description, status } = req.body;
+    const { serviceId, title, subServiceName, description, status } = req.body;
 
-    if (!serviceId || !title || !subtitle || !description)
+    if (!serviceId || !title || !subServiceName || !description)
       return sendError(res, 400, "Required fields missing");
 
-    const service = await Service.findOne({ serviceId, isDeleted: false });
+    const service = await Service.findOne({ serviceId });
     if (!service) return sendError(res, 404, "Parent service not found");
 
     const imageUrls = await uploadImages(files);
@@ -90,12 +90,10 @@ export const createSubService = async (req: Request, res: Response) => {
       subServiceId: generateId(),
       service: service._id,
       title,
-      subtitle,
+      subServiceName: subServiceName,
       description,
       images: imageUrls,
-      status: toBool(status, true),
-      isDeleted: false,
-      deletedAt: null
+      status: toBool(status, true)
     });
 
     /* link to parent service */
@@ -121,12 +119,9 @@ export const updateSubService = async (req: Request, res: Response) => {
 
   try {
     const { subServiceId } = req.params;
-    const { title, subtitle, description, status } = req.body;
+    const { title, subServiceName, description, status } = req.body;
 
-    const subService = await SubService.findOne({
-      subServiceId,
-      isDeleted: false
-    });
+    const subService = await SubService.findOne({ subServiceId });
 
     if (!subService) return sendError(res, 404, "Subservice not found");
 
@@ -137,7 +132,7 @@ export const updateSubService = async (req: Request, res: Response) => {
     };
 
     if (title) updatePayload.title = title;
-    if (subtitle) updatePayload.subtitle = subtitle;
+    if (subServiceName) updatePayload.subServiceName = subServiceName;
     if (description) updatePayload.description = description;
     if (status !== undefined)
       updatePayload.status = toBool(status, subService.status);
@@ -166,17 +161,11 @@ export const getSubServicesByService = async (req: Request, res: Response) => {
     const { serviceId } = req.params;
     const includeDeleted = req.query.includeDeleted === "true";
 
-    const service = await Service.findOne(
-      includeDeleted ? { serviceId } : { serviceId, isDeleted: false }
-    );
+    const service = await Service.findOne({ serviceId, status: !includeDeleted } );
 
     if (!service) return sendError(res, 404, "Service not found");
 
-    const subservices = await SubService.find(
-      includeDeleted
-        ? { service: service._id }
-        : { service: service._id, isDeleted: false }
-    );
+    const subservices = await SubService.find({ service: service._id, status: !includeDeleted });
 
     return sendSuccess(res, 200, "Subservices fetched successfully", subservices);
   } catch (error) {
@@ -194,11 +183,10 @@ export const getSubServiceDetails = async (req: Request, res: Response) => {
     const { subServiceId } = req.params;
     const includeDeleted = req.query.includeDeleted === "true";
 
-    const subService = await SubService.findOne(
-      includeDeleted
-        ? { subServiceId }
-        : { subServiceId, isDeleted: false }
-    ).populate("service", "serviceId title");
+    const subService = await SubService.findOne({ subServiceId, status: !includeDeleted }).populate(
+      "service",
+      "serviceId title subServiceName"
+    );
 
     if (!subService) return sendError(res, 404, "Subservice not found");
 
@@ -219,13 +207,10 @@ export const softDeleteSubService = async (req: Request, res: Response) => {
 
     const subService = await SubService.findOne({
       subServiceId,
-      isDeleted: false
     });
 
     if (!subService) return sendError(res, 404, "Subservice not found");
 
-    subService.isDeleted = true;
-    subService.deletedAt = new Date();
     subService.status = false;
 
     await subService.save();
@@ -247,13 +232,10 @@ export const restoreSubService = async (req: Request, res: Response) => {
 
     const subService = await SubService.findOne({
       subServiceId,
-      isDeleted: true
     });
 
     if (!subService) return sendError(res, 404, "Deleted subservice not found");
 
-    subService.isDeleted = false;
-    subService.deletedAt = null;
     subService.status = true;
 
     await subService.save();
@@ -320,8 +302,7 @@ export const removeSubServiceImages = async (req: Request, res: Response) => {
     }
 
     const subService = await SubService.findOne({
-      subServiceId,
-      isDeleted: false
+      subServiceId
     });
 
     if (!subService) {

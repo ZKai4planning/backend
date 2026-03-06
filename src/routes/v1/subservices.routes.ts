@@ -29,7 +29,7 @@ router.post(
 
     #swagger.parameters['serviceId'] = { in: 'formData', required: true, type: 'string' }
     #swagger.parameters['title'] = { in: 'formData', required: true, type: 'string' }
-    #swagger.parameters['subtitle'] = { in: 'formData', required: true, type: 'string' }
+    #swagger.parameters['subServiceName'] = { in: 'formData', required: true, type: 'string' }
     #swagger.parameters['description'] = { in: 'formData', required: true, type: 'string' }
     #swagger.parameters['status'] = { in: 'formData', required: false, type: 'boolean' }
     #swagger.parameters['images'] = { in: 'formData', required: false, type: 'array', items: { type: 'file' } }
@@ -54,7 +54,7 @@ router.put(
     #swagger.parameters['subServiceId'] = { in: 'path', required: true, type: 'string' }
 
     #swagger.parameters['title'] = { in: 'formData', required: false, type: 'string' }
-    #swagger.parameters['subtitle'] = { in: 'formData', required: false, type: 'string' }
+    #swagger.parameters['subServiceName'] = { in: 'formData', required: false, type: 'string' }
     #swagger.parameters['description'] = { in: 'formData', required: false, type: 'string' }
     #swagger.parameters['status'] = { in: 'formData', required: false, type: 'boolean' }
     #swagger.parameters['images'] = { in: 'formData', required: false, type: 'array', items: { type: 'file' } }

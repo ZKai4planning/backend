@@ -4,12 +4,10 @@ export interface ISubService extends Document {
   service: Types.ObjectId;
   subServiceId: string;
   title: string;
-  subtitle: string;
+  subServiceName: string;
   description: string;
   images: string[];
   status: boolean;
-  isDeleted: boolean;
-  deletedAt: Date | null;
 }
 
 /* ---------- Regex Helpers ---------- */
@@ -63,29 +61,29 @@ const subServiceSchema = new Schema<ISubService>(
       description: "Main sub service title displayed in listings"
     },
 
-    subtitle: {
+    subServiceName: {
       type: String,
-      required: [true, "Subtitle is required"],
+      required: [true, "SubService Name is required"],
       trim: true,
       set: normalizeWhitespace,
-      minlength: [5, "Subtitle must be at least 5 characters"],
-      maxlength: [150, "Subtitle cannot exceed 150 characters"],
+      minlength: [5, "SubService Name must be at least 5 characters"],
+      maxlength: [150, "SubService Name cannot exceed 150 characters"],
       match: [
         TITLE_REGEX,
-        "Subtitle can only contain letters, numbers, spaces, &, -, _, :, () and commas"
+        "SubService Name can only contain letters, numbers, spaces, &, -, _, :, () and commas"
       ],
       validate: [
         {
           validator: (value: string) => !REPEATED_CHAR_REGEX.test(value),
           message:
-            "Subtitle cannot contain more than 2 consecutive identical characters"
+            "SubService Name cannot contain more than 2 consecutive identical characters"
         },
         {
           validator: (value: string) => !NO_HTML_REGEX.test(value),
-          message: "Subtitle cannot contain HTML or script tags"
+          message: "SubService Name cannot contain HTML or script tags"
         }
       ],
-      description: "Short description displayed above the title in listings"
+      description: "Subservice name displayed in listings"
     },
 
     description: {
@@ -110,19 +108,12 @@ const subServiceSchema = new Schema<ISubService>(
       description: "Indicates whether the sub service is active or inactive"
     },
 
-    isDeleted: {
-      type: Boolean,
-      default: false,
-      description: "Soft delete flag. True means the record is logically deleted"
-    },
-
-    deletedAt: {
-      type: Date,
-      default: null,
-      description: "Timestamp when the sub service was soft deleted"
-    }
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
 
 export const SubService = mongoose.model<ISubService>(

@@ -3,12 +3,10 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 export interface IService extends Document {
   serviceId: string;
   title: string;
-  subtitle: string;
+  serviceName: string;
   description: string;
   images: string[];
   status: boolean;
-  isDeleted: boolean;
-  deletedAt: Date | null;
   subServices: Types.ObjectId[];
 }
 
@@ -55,29 +53,29 @@ const serviceSchema = new Schema<IService>(
       description: "Main service title displayed in listings"
     },
 
-    subtitle: {
+    serviceName: {
       type: String,
-      required: [true, "Subtitle is required"],
+      required: [true, "Service Name is required"],
       trim: true,
       set: normalizeWhitespace,
-      minlength: [5, "Subtitle must be at least 5 characters"],
-      maxlength: [150, "Subtitle cannot exceed 150 characters"],
+      minlength: [5, "Service Name must be at least 5 characters"],
+      maxlength: [150, "Service Name cannot exceed 150 characters"],
       match: [
         TITLE_REGEX,
-        "Subtitle can only contain letters, numbers, spaces, &, -, _, :, () and commas"
+        "Service Name can only contain letters, numbers, spaces, &, -, _, :, () and commas"
       ],
       validate: [
         {
           validator: (value: string) => !REPEATED_CHAR_REGEX.test(value),
           message:
-            "Subtitle cannot contain more than 2 consecutive identical characters"
+            "Service Name cannot contain more than 2 consecutive identical characters"
         },
         {
           validator: (value: string) => !NO_HTML_REGEX.test(value),
-          message: "Subtitle cannot contain HTML or script tags"
+          message: "Service Name cannot contain HTML or script tags"
         }
       ],
-      description: "Short description displayed above the title in listings"
+      description: "Service name displayed in listings"
     },
 
     description: {
@@ -101,17 +99,6 @@ const serviceSchema = new Schema<IService>(
       description: "Indicates whether the service is active or inactive"
     },
 
-    isDeleted: {
-      type: Boolean,
-      default: false,
-      description: "Soft delete flag. True means the record is logically deleted"
-    },
-
-    deletedAt: {
-      type: Date,
-      default: null,
-      description: "Timestamp when the service was soft deleted"
-    },
     subServices: {
       type: [Schema.Types.ObjectId],
       ref: "SubService",
@@ -119,7 +106,11 @@ const serviceSchema = new Schema<IService>(
       description: "References to related SubService documents"
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
 
 export const Service = mongoose.model<IService>("Service", serviceSchema);

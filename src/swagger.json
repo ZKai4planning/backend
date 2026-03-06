@@ -1168,7 +1168,7 @@
             "type": "string"
           },
           {
-            "name": "subtitle",
+            "name": "serviceName",
             "in": "formData",
             "required": true,
             "type": "string"
@@ -1266,7 +1266,7 @@
             "type": "string"
           },
           {
-            "name": "subtitle",
+            "name": "serviceName",
             "in": "formData",
             "type": "string"
           },
@@ -1477,7 +1477,7 @@
             "type": "string"
           },
           {
-            "name": "subtitle",
+            "name": "subServiceName",
             "in": "formData",
             "required": true,
             "type": "string"
@@ -1539,7 +1539,7 @@
             "type": "string"
           },
           {
-            "name": "subtitle",
+            "name": "subServiceName",
             "in": "formData",
             "required": false,
             "type": "string"

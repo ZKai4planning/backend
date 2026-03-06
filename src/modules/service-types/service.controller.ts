@@ -81,10 +81,10 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
   const files = (req.files as Express.Multer.File[]) || [];
 
   try {
-    const { serviceId, title, subtitle, description, status } = req.body;
+    const { serviceId, title, serviceName, description, status } = req.body;
 
-    if (!title || !subtitle || !description) {
-      return sendError(res, 400, "Title, subtitle and description are required");
+    if (!title || !serviceName || !description) {
+      return sendError(res, 400, "Title, serviceName and description are required");
     }
 
     /* -----------------------------
@@ -92,10 +92,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
     ----------------------------- */
 
     if (serviceId) {
-      const parentService = await Service.findOne({
-        serviceId,
-        isDeleted: false
-      });
+      const parentService = await Service.findOne({ serviceId });
 
       if (!parentService) {
         return sendError(res, 404, "Parent service not found");
@@ -105,8 +102,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
 
       const existingSubService = await SubService.findOne({
         service: parentService._id,
-        title,
-        isDeleted: false
+        title
       });
 
       if (existingSubService) {
@@ -119,12 +115,10 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
         subServiceId: generateId(),
         service: parentService._id,
         title,
-        subtitle,
+        subServiceName: serviceName,
         description,
         images: imageUrls,
-        status: toBool(status, true),
-        isDeleted: false,
-        deletedAt: null
+        status: toBool(status, true)
       });
 
       /* link to parent */
@@ -146,10 +140,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
 
     /* Check duplicate service title */
 
-    const existingService = await Service.findOne({
-      title,
-      isDeleted: false
-    });
+    const existingService = await Service.findOne({ title });
 
     if (existingService) {
       return sendError(res, 409, "Service with this title already exists");
@@ -160,12 +151,10 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
     const service = await Service.create({
       serviceId: generateId(),
       title,
-      subtitle,
+      serviceName: serviceName,
       description,
       images: imageUrls,
       status: toBool(status, true),
-      isDeleted: false,
-      deletedAt: null,
       subServices: []
     });
 
@@ -173,7 +162,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
 
   } catch (error: any) {
 
-     /* Handle Mongo duplicate error fallback */
+    /* Handle Mongo duplicate error fallback */
 
     if (error.code === 11000) {
       return sendError(res, 409, "Duplicate title already exists");
@@ -194,18 +183,15 @@ export const createService = async (req: Request, res: Response) => {
   const files = (req.files as Express.Multer.File[]) || [];
 
   try {
-    const { title, subtitle, description, status } = req.body;
+    const { title, serviceName, description, status } = req.body;
 
-    if (!title || !subtitle || !description) {
-      return sendError(res, 400, "Title, subtitle and description are required");
+    if (!title || !serviceName || !description) {
+      return sendError(res, 400, "Title, serviceName and description are required");
     }
 
     /* Check duplicate service title */
 
-    const existingService = await Service.findOne({
-      title,
-      isDeleted: false
-    });
+    const existingService = await Service.findOne({ title });
 
     if (existingService) {
       return sendError(res, 409, "Service with this title already exists");
@@ -216,17 +202,15 @@ export const createService = async (req: Request, res: Response) => {
     const service = await Service.create({
       serviceId: generateId(),
       title,
-      subtitle,
+      serviceName: serviceName,
       description,
       images: imageUrls,
-      status: toBool(status, true),
-      isDeleted: false,
-      deletedAt: null
+      status: toBool(status, true)
     });
 
     return sendSuccess(res, 201, "Service created successfully", service);
   } catch (error: any) {
-      /* Handle Mongo duplicate error fallback */
+    /* Handle Mongo duplicate error fallback */
     if (error.code === 11000) {
       return sendError(res, 409, "Duplicate title already exists");
     }
@@ -246,9 +230,9 @@ export const updateService = async (req: Request, res: Response) => {
 
   try {
     const { serviceId } = req.params;
-    const { title, subtitle, description, status } = req.body;
+    const { title, serviceName, description, status } = req.body;
 
-    const service = await Service.findOne({ serviceId, isDeleted: false });
+    const service = await Service.findOne({ serviceId });
     if (!service) return sendError(res, 404, "Service not found");
 
     const newImages = await uploadImages(files, "services");
@@ -258,7 +242,7 @@ export const updateService = async (req: Request, res: Response) => {
     };
 
     if (title) updatePayload.title = title;
-    if (subtitle) updatePayload.subtitle = subtitle;
+    if (serviceName) updatePayload.serviceName = serviceName;
     if (description) updatePayload.description = description;
     if (status !== undefined)
       updatePayload.status = toBool(status, service.status);
@@ -285,11 +269,18 @@ export const updateService = async (req: Request, res: Response) => {
 export const getServiceList = async (_req: Request, res: Response) => {
   try {
     const services = await Service.find(
-      { status: true, isDeleted: false },
-      { serviceId: 1, title: 1, status: 1, _id: 0 }
-    );
+      { status: true },
+      { serviceId: 1, title: 1, serviceName: 1, status: 1, _id: 0 }
+    ).lean();
 
-    return sendSuccess(res, 200, "Services fetched successfully", services);
+    const formattedServices = services.map((service: any) => ({
+      serviceId: service.serviceId,
+      title: service.title,
+      serviceName: service.serviceName,
+      status: service.status
+    }));
+
+    return sendSuccess(res, 200, "Services fetched successfully", formattedServices);
   } catch (error) {
     console.error(error);
     return sendError(res, 500, "Failed to fetch services");
@@ -304,13 +295,22 @@ export const getAllServiceList = async (req: Request, res: Response) => {
   try {
     const includeDeleted = req.query.includeDeleted === "true";
 
-    const filter = includeDeleted ? {} : { isDeleted: false };
+    const filter = { status: !includeDeleted };
 
     const services = await Service.find(filter).select(
-      "serviceId title subtitle description images status isDeleted deletedAt"
+      "serviceId title serviceName description images status"
     ).lean();
 
-    return sendSuccess(res, 200, "Services fetched successfully", services);
+    const formattedServices = services.map((service: any) => ({
+      serviceId: service.serviceId,
+      title: service.title,
+      serviceName: service.serviceName,
+      description: service.description,
+      images: service.images,
+      status: service.status
+    }));
+
+    return sendSuccess(res, 200, "Services fetched successfully", formattedServices);
   } catch (error) {
     console.error(error);
     return sendError(res, 500, "Failed to fetch services");
@@ -325,10 +325,7 @@ export const getServiceDetails = async (req: Request, res: Response) => {
   try {
     const { serviceId } = req.params;
     const includeDeleted = req.query.includeDeleted === "true";
-
-    const service = await Service.findOne(
-      includeDeleted ? { serviceId } : { serviceId, isDeleted: false }
-    ).populate("subServices");
+    const service = await Service.findOne({ serviceId, status: !includeDeleted }).populate("subServices");
 
     if (!service) return sendError(res, 404, "Service not found");
 
@@ -347,18 +344,16 @@ export const softDeleteService = async (req: Request, res: Response) => {
   try {
     const { serviceId } = req.params;
 
-    const service = await Service.findOne({ serviceId, isDeleted: false });
+    const service = await Service.findOne({ serviceId });
     if (!service) return sendError(res, 404, "Service not found");
 
-    service.isDeleted = true;
-    service.deletedAt = new Date();
     service.status = false;
 
     await service.save();
 
     await SubService.updateMany(
       { service: service._id },
-      { isDeleted: true, deletedAt: new Date(), status: false }
+      { status: false }
     );
 
     return sendSuccess(res, 200, "Service soft deleted successfully");
@@ -376,18 +371,16 @@ export const restoreService = async (req: Request, res: Response) => {
   try {
     const { serviceId } = req.params;
 
-    const service = await Service.findOne({ serviceId, isDeleted: true });
+    const service = await Service.findOne({ serviceId });
     if (!service) return sendError(res, 404, "Deleted service not found");
 
-    service.isDeleted = false;
-    service.deletedAt = null;
     service.status = true;
 
     await service.save();
 
     await SubService.updateMany(
       { service: service._id },
-      { isDeleted: false, deletedAt: null, status: true }
+      { status: true }
     );
 
     return sendSuccess(res, 200, "Service restored successfully");
@@ -449,7 +442,7 @@ export const removeServiceImages = async (req: Request, res: Response) => {
     if (!Array.isArray(images) || !images.length)
       return sendError(res, 400, "Images array required");
 
-    const service = await Service.findOne({ serviceId, isDeleted: false });
+    const service = await Service.findOne({ serviceId });
     if (!service) return sendError(res, 404, "Service not found");
 
     await removeCloudinaryImages(images);
