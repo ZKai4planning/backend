@@ -2135,110 +2135,179 @@
       }
     },
     "/profile/{userId}": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
+    "get": {
+      "tags": ["Profile"],
+      "summary": "Get user profile by userId",
+      "description": "Fetch the profile details associated with a specific user ID.",
+      "parameters": [
+        {
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "description": "Unique identifier of the user"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Profile retrieved successfully"
         },
-        "tags": [
-          "Profile"
-        ]
-      },
-      "put": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "fullName": {
-                  "example": "any"
-                },
-                "bio": {
-                  "example": "any"
-                },
-                "profilePicture": {
-                  "example": "https://res.cloudinary.com/demo/image/upload/profile_pictures/sample.jpg"
+        "404": {
+          "description": "Profile not found"
+        },
+        "500": {
+          "description": "Internal server error"
+        }
+      }
+    },
+
+    "put": {
+      "tags": ["Profile"],
+      "summary": "Update user profile",
+      "description": "Update profile information such as name, bio, phone numbers, council, and address.",
+      "parameters": [
+        {
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "description": "Unique identifier of the user"
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "fullName": {
+                "type": "string",
+                "example": "any"
+              },
+              "bio": {
+                "type": "string",
+                "example": "any"
+              },
+              "council": {
+                "type": "string",
+                "example": "any"
+              },
+              "phone": {
+                "type": "object",
+                "properties": {
+                  "countryCode": {
+                    "type": "string",
+                    "example": "+44"
+                  },
+                  "number": {
+                    "type": "string",
+                    "example": "9100012345"
+                  }
+                }
+              },
+              "landline": {
+                "type": "object",
+                "properties": {
+                  "countryCode": {
+                    "type": "string",
+                    "example": "+44"
+                  },
+                  "number": {
+                    "type": "string",
+                    "example": "4023456789"
+                  }
+                }
+              },
+              "address": {
+                "type": "object",
+                "properties": {
+                  "doorNo": {
+                    "type": "string",
+                    "example": "12-3-45"
+                  },
+                  "street": {
+                    "type": "string",
+                    "example": "Street Road"
+                  },
+                  "locality": {
+                    "type": "string",
+                    "example": "Locality"
+                  },
+                  "city": {
+                    "type": "string",
+                    "example": "City"
+                  },
+                  "state": {
+                    "type": "string",
+                    "example": "State"
+                  },
+                  "country": {
+                    "type": "string",
+                    "example": "Country"
+                  },
+                  "postalCode": {
+                    "type": "string",
+                    "example": "500016"
+                  }
                 }
               }
             }
           }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Profile updated successfully"
         },
-        "tags": [
-          "Profile"
-        ]
+        "400": {
+          "description": "Invalid request data"
+        },
+        "404": {
+          "description": "Profile not found"
+        },
+        "500": {
+          "description": "Internal server error"
+        }
       }
-    },
+    }
+  },
     "/profile/{userId}/picture": {
-      "put": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "profilePicture",
-            "in": "formData",
-            "required": true,
-            "type": "file"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
+    "put": {
+      "tags": ["Profile"],
+      "summary": "Upload or update profile picture",
+      "description": "Upload a profile picture for the specified user.",
+      "consumes": ["multipart/form-data"],
+      "parameters": [
+        {
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "description": "Unique identifier of the user"
         },
-        "tags": [
-          "Profile"
-        ]
+        {
+          "name": "profilePicture",
+          "in": "formData",
+          "required": true,
+          "type": "file",
+          "description": "Profile image file"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Profile picture updated successfully"
+        },
+        "400": {
+          "description": "Invalid file upload"
+        },
+        "404": {
+          "description": "Profile not found"
+        },
+        "500": {
+          "description": "Internal server error"
+        }
       }
+    }
     }
   },
   "tags": [

@@ -1,131 +1,262 @@
 import { Request, Response } from "express";
-
 import cloudinary from "../../config/cloudinary";
 import { UserProfile } from "./userprofile.model";
 import { isValidUrl } from "../../utils/validators";
 
-
-
+/* ------------------------------------------------ */
+/* Get Profile By UserId */
+/* ------------------------------------------------ */
 
 export const getProfileByUserId = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
 
-    const profile = await UserProfile.findOne({ userRefId: userId });
+    const profile = await UserProfile.findOne({ userRefId: userId }).lean();
 
     if (!profile) {
-      return res.status(404).json({ message: "Profile not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Profile not found"
+      });
     }
 
-    res.json(profile);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(200).json({
+      success: true,
+      data: profile
+    });
+
+  } catch (error) {
+    console.error("Get Profile Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
   }
 };
+
+
+/* ------------------------------------------------ */
+/* Update Profile */
+/* ------------------------------------------------ */
 
 export const updateProfileByUserId = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const { fullName, bio, profilePicture } = req.body as {
-      fullName?: unknown;
-      bio?: unknown;
-      profilePicture?: unknown;
-    };
 
-    const updateFields: {
-      fullName?: string;
-      bio?: string;
-      profilePicture?: string;
-    } = {};
+    const {
+      fullName,
+      bio,
+      council,
+      phone,
+      landline,
+      address
+    } = req.body;
+
+    const updateFields: any = {};
+
+    /* ---------- Basic Fields ---------- */
 
     if (fullName !== undefined) {
       if (typeof fullName !== "string") {
-        return res.status(400).json({ message: "`fullName` must be a string" });
+        return res.status(400).json({
+          success: false,
+          message: "fullName must be a string"
+        });
       }
       updateFields.fullName = fullName.trim();
     }
 
     if (bio !== undefined) {
       if (typeof bio !== "string") {
-        return res.status(400).json({ message: "`bio` must be a string" });
+        return res.status(400).json({
+          success: false,
+          message: "bio must be a string"
+        });
       }
       updateFields.bio = bio.trim();
     }
 
-    if (profilePicture !== undefined) {
+    if (council !== undefined) {
+      if (typeof council !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "council must be a string"
+        });
+      }
+      updateFields.council = council.trim();
+    }
+
+    /* ---------- Phone ---------- */
+
+    if (phone) {
       if (
-        profilePicture === null ||
-        (typeof profilePicture === "string" && profilePicture.trim() === "")
-      ) {
-        updateFields.profilePicture = "";
-      } else if (
-        typeof profilePicture !== "string" ||
-        !isValidUrl(profilePicture.trim())
+        typeof phone !== "object" ||
+        typeof phone.countryCode !== "string" ||
+        typeof phone.number !== "string"
       ) {
         return res.status(400).json({
-          message: "`profilePicture` must be a valid http/https URL",
+          success: false,
+          message: "Invalid phone structure"
         });
-      } else {
-        updateFields.profilePicture = profilePicture.trim();
+      }
+
+      updateFields.phone = {
+        countryCode: phone.countryCode.trim(),
+        number: phone.number.trim()
+      };
+    }
+
+    /* ---------- Landline ---------- */
+
+    if (landline) {
+      if (
+        typeof landline !== "object" ||
+        typeof landline.number !== "string"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid landline structure"
+        });
+      }
+
+      updateFields.landline = {
+        countryCode: landline.countryCode?.trim(),
+        number: landline.number.trim()
+      };
+    }
+
+    /* ---------- Address ---------- */
+
+    if (address) {
+      if (typeof address !== "object") {
+        return res.status(400).json({
+          success: false,
+          message: "Address must be an object"
+        });
+      }
+
+      updateFields.address = {};
+
+      const allowedFields = [
+        "doorNo",
+        "street",
+        "locality",
+        "city",
+        "state",
+        "country",
+        "postalCode"
+      ];
+
+      for (const key of allowedFields) {
+        if (address[key]) {
+          updateFields.address[key] = String(address[key]).trim();
+        }
       }
     }
 
     if (!Object.keys(updateFields).length) {
       return res.status(400).json({
-        message: "Provide at least one of: fullName, bio, profilePicture",
+        success: false,
+        message: "No valid fields provided for update"
       });
     }
 
     const profile = await UserProfile.findOneAndUpdate(
       { userRefId: userId },
       { $set: updateFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!profile) {
-      return res.status(404).json({ message: "Profile not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Profile not found"
+      });
     }
 
-    res.json({ message: "Profile updated successfully", profile });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: profile
+    });
+
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
   }
 };
 
 
-export const updateProfilePictureByUserId = async (req: Request, res: Response) => {
+/* ------------------------------------------------ */
+/* Update Profile Picture */
+/* ------------------------------------------------ */
+
+export const updateProfilePictureByUserId = async (
+  req: Request,
+  res: Response
+) => {
   try {
+
     const { userId } = req.params;
 
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded"
+      });
     }
 
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "profile_pictures",
+    /* ---------- Upload Image ---------- */
+
+    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+      folder: "profile_pictures"
     });
 
-    // Save URL to MongoDB
-    const profile = await UserProfile.findOneAndUpdate(
-      { userRefId: userId },
-      { profilePicture: result.secure_url },
-      { new: true }
-    );
+    const profile = await UserProfile.findOne({ userRefId: userId });
 
     if (!profile) {
-      return res.status(404).json({ message: "Profile not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Profile not found"
+      });
     }
 
-    res.json({
+    /* ---------- Remove Old Image ---------- */
+
+    if (profile.profilePicture && isValidUrl(profile.profilePicture)) {
+      try {
+        const publicId = profile.profilePicture
+          .split("/")
+          .slice(-2)
+          .join("/")
+          .split(".")[0];
+
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.warn("Old image cleanup failed");
+      }
+    }
+
+    profile.profilePicture = uploadResult.secure_url;
+
+    await profile.save();
+
+    return res.status(200).json({
+      success: true,
       message: "Profile picture updated successfully",
-      profile,
+      data: profile
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Profile Picture Upload Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
   }
 };
