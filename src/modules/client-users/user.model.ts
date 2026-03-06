@@ -13,12 +13,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
+      trim: true,
+      lowercase: true,
     },
 
     phoneNumber: {
       type: String,
       unique: true,
       sparse: true,
+      trim: true,
     },
 
     fullName: {

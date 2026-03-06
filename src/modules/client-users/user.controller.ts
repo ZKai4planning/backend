@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
-import { isValidEmail, isValidPhone } from "../../utils/validators";
+import {
+  isValidEmail,
+  isValidPhone,
+  normalizeEmail,
+  normalizePhone,
+} from "../../utils/validators";
 import { User } from "./user.model";
 import { generateOTP, generateId } from "../../utils/generators";
 import { UserProfile } from "../client-user-profiles/userprofile.model";
@@ -11,7 +16,10 @@ import { isAccountLocked } from "../../utils/auth";
 
 export const requestOtp = async (req: Request, res: Response) => {
   try {
-    const { identifier, phoneNumber, fullName } = req.body;
+    const { identifier: rawIdentifier, phoneNumber: rawPhoneNumber, fullName } =
+      req.body;
+    let identifier = normalizePhone(rawIdentifier);
+    const phoneNumber = normalizePhone(rawPhoneNumber);
 
     if (!identifier) {
       return res.status(400).json({ message: "Email or phone required" });
@@ -21,6 +29,7 @@ export const requestOtp = async (req: Request, res: Response) => {
     let type: "email" | "phone";
 
     if (isValidEmail(identifier)) {
+      identifier = normalizeEmail(identifier) as string;
       query.email = identifier;
       type = "email";
     } else if (isValidPhone(identifier)) {
@@ -71,12 +80,26 @@ export const requestOtp = async (req: Request, res: Response) => {
         }
       }
 
-      user = await User.create({
-        userId,
-        email: type === "email" ? identifier : undefined,
-        phoneNumber: finalPhoneNumber,
-        fullName: typeof fullName === "string" ? fullName.trim() : undefined,
-      });
+      try {
+        user = await User.create({
+          userId,
+          email: type === "email" ? identifier : undefined,
+          phoneNumber: finalPhoneNumber,
+          fullName: typeof fullName === "string" ? fullName.trim() : undefined,
+        });
+      } catch (createErr: any) {
+        if (createErr?.code === 11000) {
+          if (createErr?.keyPattern?.phoneNumber) {
+            return res
+              .status(400)
+              .json({ message: "Phone number already in use" });
+          }
+          if (createErr?.keyPattern?.email) {
+            return res.status(400).json({ message: "Email already in use" });
+          }
+        }
+        throw createErr;
+      }
 
       await UserProfile.create({
         profileId,
@@ -114,14 +137,22 @@ export const requestOtp = async (req: Request, res: Response) => {
 
 export const verifyOtp = async (req: Request, res: Response) => {
   try {
-    const { identifier, otp } = req.body;
+    const { identifier: rawIdentifier, otp } = req.body;
+    const identifier = normalizePhone(rawIdentifier);
 
     if (!identifier || !otp) {
       return res.status(400).json({ message: "Identifier and OTP required" });
     }
 
+    const normalizedIdentifier = isValidEmail(identifier)
+      ? (normalizeEmail(identifier) as string)
+      : identifier;
+
     const user = await User.findOne({
-      $or: [{ email: identifier }, { phoneNumber: identifier }],
+      $or: [
+        { email: normalizedIdentifier },
+        { phoneNumber: normalizedIdentifier },
+      ],
     });
 
     if (!user) {
@@ -190,14 +221,22 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
 export const resendOtp = async (req: Request, res: Response) => {
   try {
-    const { identifier } = req.body;
+    const { identifier: rawIdentifier } = req.body;
+    const identifier = normalizePhone(rawIdentifier);
 
     if (!identifier) {
       return res.status(400).json({ message: "Email or phone required" });
     }
 
+    const normalizedIdentifier = isValidEmail(identifier)
+      ? (normalizeEmail(identifier) as string)
+      : identifier;
+
     const user = await User.findOne({
-      $or: [{ email: identifier }, { phoneNumber: identifier }],
+      $or: [
+        { email: normalizedIdentifier },
+        { phoneNumber: normalizedIdentifier },
+      ],
     });
 
     if (!user) {
@@ -224,7 +263,7 @@ export const resendOtp = async (req: Request, res: Response) => {
 
     const isEmail = isValidEmail(identifier);
     if (isEmail) {
-      await sendOtpEmail(identifier, otp);
+      await sendOtpEmail(normalizedIdentifier, otp);
     } else {
       // Phone OTP sending not implemented yet
       console.log("Resent OTP:", otp);
