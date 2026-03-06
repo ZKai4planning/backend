@@ -30,6 +30,19 @@ const toBool = (value: unknown, fallback: boolean) => {
   return fallback;
 };
 
+const normalizeText = (value: unknown) =>
+  typeof value === "string" ? value.trim() : "";
+
+const formatMongooseValidationErrors = (error: any) => {
+  const errors: Record<string, string> = {};
+  if (!error?.errors || typeof error.errors !== "object") return errors;
+  Object.keys(error.errors).forEach((key) => {
+    const message = error.errors[key]?.message;
+    if (typeof message === "string") errors[key] = message;
+  });
+  return errors;
+};
+
 const cleanupTempFiles = async (files: Express.Multer.File[] = []) => {
   await Promise.all(
     files.map((file) => fs.unlink(file.path).catch(() => undefined))
@@ -81,11 +94,19 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
   const files = (req.files as Express.Multer.File[]) || [];
 
   try {
-    const { serviceId, title, serviceName, description, status } = req.body;
+    const { serviceId, status } = req.body;
+    const title = normalizeText(req.body.title);
+    const serviceName = normalizeText(req.body.serviceName);
+    const description = normalizeText(req.body.description);
 
     if (!title || !serviceName || !description) {
       return sendError(res, 400, "Title, serviceName and description are required");
     }
+    if (title.length < 3) return sendError(res, 400, "Title must be at least 3 characters");
+    if (serviceName.length < 5)
+      return sendError(res, 400, "serviceName must be at least 5 characters");
+    if (description.length < 10)
+      return sendError(res, 400, "Description must be at least 10 characters");
 
     /* -----------------------------
        CREATE SUBSERVICE
@@ -167,6 +188,13 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
     if (error.code === 11000) {
       return sendError(res, 409, "Duplicate title already exists");
     }
+    if (error?.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: formatMongooseValidationErrors(error),
+      });
+    }
 
     console.error(error);
     return sendError(res, 500, "Failed to create resource");
@@ -183,11 +211,19 @@ export const createService = async (req: Request, res: Response) => {
   const files = (req.files as Express.Multer.File[]) || [];
 
   try {
-    const { title, serviceName, description, status } = req.body;
+    const { status } = req.body;
+    const title = normalizeText(req.body.title);
+    const serviceName = normalizeText(req.body.serviceName);
+    const description = normalizeText(req.body.description);
 
     if (!title || !serviceName || !description) {
       return sendError(res, 400, "Title, serviceName and description are required");
     }
+    if (title.length < 3) return sendError(res, 400, "Title must be at least 3 characters");
+    if (serviceName.length < 5)
+      return sendError(res, 400, "serviceName must be at least 5 characters");
+    if (description.length < 10)
+      return sendError(res, 400, "Description must be at least 10 characters");
 
     /* Check duplicate service title */
 
@@ -214,6 +250,13 @@ export const createService = async (req: Request, res: Response) => {
     if (error.code === 11000) {
       return sendError(res, 409, "Duplicate title already exists");
     }
+    if (error?.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: formatMongooseValidationErrors(error),
+      });
+    }
     console.error(error);
     return sendError(res, 500, "Failed to create service");
   } finally {
@@ -230,31 +273,63 @@ export const updateService = async (req: Request, res: Response) => {
 
   try {
     const { serviceId } = req.params;
-    const { title, serviceName, description, status } = req.body;
+    const { status } = req.body;
+    const title =
+      req.body.title !== undefined ? normalizeText(req.body.title) : undefined;
+    const serviceName =
+      req.body.serviceName !== undefined
+        ? normalizeText(req.body.serviceName)
+        : undefined;
+    const description =
+      req.body.description !== undefined
+        ? normalizeText(req.body.description)
+        : undefined;
 
     const service = await Service.findOne({ serviceId });
     if (!service) return sendError(res, 404, "Service not found");
 
     const newImages = await uploadImages(files, "services");
 
-    const updatePayload: Partial<typeof service> = {
+    const updatePayload: any = {
       images: [...service.images, ...newImages]
     };
 
-    if (title) updatePayload.title = title;
-    if (serviceName) updatePayload.serviceName = serviceName;
-    if (description) updatePayload.description = description;
+    if (title !== undefined) {
+      if (!title || title.length < 3) {
+        return sendError(res, 400, "Title must be at least 3 characters");
+      }
+      updatePayload.title = title;
+    }
+    if (serviceName !== undefined) {
+      if (!serviceName || serviceName.length < 5) {
+        return sendError(res, 400, "serviceName must be at least 5 characters");
+      }
+      updatePayload.serviceName = serviceName;
+    }
+    if (description !== undefined) {
+      if (!description || description.length < 10) {
+        return sendError(res, 400, "Description must be at least 10 characters");
+      }
+      updatePayload.description = description;
+    }
     if (status !== undefined)
       updatePayload.status = toBool(status, service.status);
 
     const updatedService = await Service.findOneAndUpdate(
       { serviceId },
       updatePayload,
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     return sendSuccess(res, 200, "Service updated successfully", updatedService);
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: formatMongooseValidationErrors(error),
+      });
+    }
     console.error(error);
     return sendError(res, 500, "Failed to update service");
   } finally {

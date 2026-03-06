@@ -6,6 +6,10 @@ export const isValidPhone = (value: string) => {
   return /^\+44\d{10}$/.test(value);
 };
 
+export const isValidInternationalPhone = (value: string) => {
+  return /^\+?[1-9]\d{7,14}$/.test(value.trim());
+};
+
 export const normalizeEmail = (value?: string | null) => {
   return typeof value === "string" ? value.trim().toLowerCase() : undefined;
 };
