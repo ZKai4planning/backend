@@ -14,6 +14,14 @@ export const normalizePhone = (value?: string | null) => {
   return typeof value === "string" ? value.trim() : undefined;
 };
 
+export const isValidUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
+};
 
 export const isValidName = (name: string): boolean => {
   const nameRegex = /^[A-Za-z ]{2,50}$/;

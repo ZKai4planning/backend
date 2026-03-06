@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 import cloudinary from "../../config/cloudinary";
 import { UserProfile } from "./userprofile.model";
+import { isValidUrl } from "../../utils/validators";
 
 
 
@@ -26,11 +27,59 @@ export const getProfileByUserId = async (req: Request, res: Response) => {
 export const updateProfileByUserId = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const { fullName, bio } = req.body;
+    const { fullName, bio, profilePicture } = req.body as {
+      fullName?: unknown;
+      bio?: unknown;
+      profilePicture?: unknown;
+    };
+
+    const updateFields: {
+      fullName?: string;
+      bio?: string;
+      profilePicture?: string;
+    } = {};
+
+    if (fullName !== undefined) {
+      if (typeof fullName !== "string") {
+        return res.status(400).json({ message: "`fullName` must be a string" });
+      }
+      updateFields.fullName = fullName.trim();
+    }
+
+    if (bio !== undefined) {
+      if (typeof bio !== "string") {
+        return res.status(400).json({ message: "`bio` must be a string" });
+      }
+      updateFields.bio = bio.trim();
+    }
+
+    if (profilePicture !== undefined) {
+      if (
+        profilePicture === null ||
+        (typeof profilePicture === "string" && profilePicture.trim() === "")
+      ) {
+        updateFields.profilePicture = "";
+      } else if (
+        typeof profilePicture !== "string" ||
+        !isValidUrl(profilePicture.trim())
+      ) {
+        return res.status(400).json({
+          message: "`profilePicture` must be a valid http/https URL",
+        });
+      } else {
+        updateFields.profilePicture = profilePicture.trim();
+      }
+    }
+
+    if (!Object.keys(updateFields).length) {
+      return res.status(400).json({
+        message: "Provide at least one of: fullName, bio, profilePicture",
+      });
+    }
 
     const profile = await UserProfile.findOneAndUpdate(
       { userRefId: userId },
-      { fullName, bio },
+      { $set: updateFields },
       { new: true }
     );
 

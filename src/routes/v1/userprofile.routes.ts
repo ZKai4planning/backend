@@ -9,8 +9,13 @@ const router = Router();
 router.get("/:userId", getProfileByUserId);
 router.put("/:userId", updateProfileByUserId);
 router.put(
-  "/profile/:userId/picture",
+  "/:userId/picture",
   upload.single("profilePicture"), 
+  updateProfilePictureByUserId
+);
+router.put(
+  "/profile/:userId/picture",
+  upload.single("profilePicture"),
   updateProfilePictureByUserId
 );
 

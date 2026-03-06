@@ -2180,6 +2180,9 @@
                 },
                 "bio": {
                   "example": "any"
+                },
+                "profilePicture": {
+                  "example": "https://res.cloudinary.com/demo/image/upload/profile_pictures/sample.jpg"
                 }
               }
             }
@@ -2201,7 +2204,7 @@
         ]
       }
     },
-    "/profile/profile/{userId}/picture": {
+    "/profile/{userId}/picture": {
       "put": {
         "description": "",
         "parameters": [
@@ -2210,6 +2213,12 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "profilePicture",
+            "in": "formData",
+            "required": true,
+            "type": "file"
           }
         ],
         "responses": {
