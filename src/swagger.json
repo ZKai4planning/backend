@@ -795,335 +795,201 @@
     },
     "/services": {
       "post": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Create a new service",
         "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "example": "any"
-                },
-                "description": {
-                  "example": "any"
-                }
-              }
+              "name": "serviceId",
+              "in": "formData",
+              "required": false,
+              "type": "string"
+          },
+          {
+            "name": "title",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subtitle",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "images",
+            "in": "formData",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "file"
             }
           }
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "Service created successfully"
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Validation error"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
           }
         },
-        "tags": [
-          "Services"
-        ]
+        "autoBody": false
       },
       "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
         "tags": [
           "Services"
-        ]
-      }
-    },
-    "/services/{serviceId}": {
-      "put": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "example": "any"
-                },
-                "description": {
-                  "example": "any"
-                }
-              }
-            }
-          }
         ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Services"
-        ]
-      },
-      "get": {
+        "summary": "Get active services list",
         "description": "",
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
+            "description": "Services fetched successfully"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
           }
-        },
-        "tags": [
-          "Services"
-        ]
+        }
       }
     },
     "/services/all": {
       "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
         "tags": [
           "Services"
-        ]
+        ],
+        "summary": "Get all services",
+        "description": "",
+        "parameters": [
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All services fetched successfully"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/services/{serviceId}": {
+      "put": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Update service details",
+        "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "subtitle",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "formData",
+            "type": "boolean"
+          },
+          {
+            "name": "images",
+            "in": "formData",
+            "type": "array",
+            "items": {
+              "type": "file"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service updated successfully"
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "autoBody": false
+      },
+      "get": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Get service details",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service fetched successfully"
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
       }
     },
     "/services/{serviceId}/images": {
       "delete": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "images": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
         "tags": [
           "Services"
-        ]
-      }
-    },
-    "/new-services": {
-      "post": {
-        "description": "",
-        "consumes": [
-          "multipart/form-data"
         ],
-        "parameters": [
-          {
-            "name": "name",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "images",
-            "in": "formData",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "file"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "autoBody": false,
-        "tags": [
-          "New Services"
-        ]
-      },
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "New Services"
-        ]
-      }
-    },
-    "/new-services/{serviceId}": {
-      "put": {
-        "description": "",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "images",
-            "in": "formData",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "file"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "autoBody": false,
-        "tags": [
-          "New Services"
-        ]
-      },
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "New Services"
-        ]
-      }
-    },
-    "/new-services/all": {
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "New Services"
-        ]
-      }
-    },
-    "/new-services/{serviceId}/images": {
-      "delete": {
-        "description": "",
+        "summary": "Remove service images",
         "parameters": [
           {
             "name": "serviceId",
@@ -1134,11 +1000,18 @@
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "images": {
-                  "example": "any"
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": [
+                    "https://res.cloudinary.com/demo/image/upload/services/sample.jpg"
+                  ]
                 }
               }
             }
@@ -1146,25 +1019,95 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
+            "description": "Images removed successfully"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
           }
-        },
+        }
+      }
+    },
+    "/services/{serviceId}/soft-delete": {
+      "patch": {
         "tags": [
-          "New Services"
-        ]
+          "Services"
+        ],
+        "summary": "Soft delete service",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service soft deleted"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/services/{serviceId}/restore": {
+      "patch": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Restore service",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service restored"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/services/{serviceId}/permanent": {
+      "delete": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Permanently delete service",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service permanently deleted"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
       }
     },
     "/subservices": {
       "post": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Create a new SubService",
         "description": "",
         "consumes": [
           "multipart/form-data"
@@ -1177,7 +1120,13 @@
             "type": "string"
           },
           {
-            "name": "name",
+            "name": "title",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subtitle",
             "in": "formData",
             "required": true,
             "type": "string"
@@ -1185,14 +1134,8 @@
           {
             "name": "description",
             "in": "formData",
-            "required": false,
+            "required": true,
             "type": "string"
-          },
-          {
-            "name": "status",
-            "in": "formData",
-            "required": false,
-            "type": "boolean"
           },
           {
             "name": "images",
@@ -1206,26 +1149,27 @@
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "SubService created successfully"
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Validation error"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Parent service not found"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
           }
         },
-        "autoBody": false,
-        "tags": [
-          "Subservices"
-        ]
+        "autoBody": false
       }
     },
     "/subservices/{subServiceId}": {
       "put": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Update SubService details",
         "description": "",
         "consumes": [
           "multipart/form-data"
@@ -1238,7 +1182,13 @@
             "type": "string"
           },
           {
-            "name": "name",
+            "name": "title",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "subtitle",
             "in": "formData",
             "required": false,
             "type": "string"
@@ -1267,21 +1217,142 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "SubService updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
           },
           "404": {
-            "description": "Not Found"
+            "description": "SubService not found"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
           }
         },
-        "autoBody": false,
-        "tags": [
-          "Subservices"
-        ]
+        "autoBody": false
       },
+      "get": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Get SubService details",
+        "description": "",
+        "parameters": [
+          {
+            "name": "subServiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SubService fetched successfully"
+          },
+          "404": {
+            "description": "SubService not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/subservices/{subServiceId}/images": {
       "delete": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Remove images from a SubService",
+        "parameters": [
+          {
+            "name": "subServiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "images": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": [
+                    "https://res.cloudinary.com/demo/image/upload/subservices/sample.jpg"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Images removed successfully"
+          },
+          "400": {
+            "description": "Invalid images array"
+          },
+          "404": {
+            "description": "SubService not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/subservices/service/{serviceId}": {
+      "get": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Get SubServices by Service",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SubServices fetched successfully"
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/subservices/{subServiceId}/soft-delete": {
+      "patch": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Soft delete SubService",
         "description": "",
         "parameters": [
           {
@@ -1293,26 +1364,27 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "SubService soft deleted successfully"
           },
           "404": {
-            "description": "Not Found"
+            "description": "SubService not found"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
           }
-        },
-        "tags": [
-          "Subservices"
-        ]
+        }
       }
     },
-    "/subservices/service/{serviceId}": {
-      "get": {
+    "/subservices/{subServiceId}/restore": {
+      "patch": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Restore soft deleted SubService",
         "description": "",
         "parameters": [
           {
-            "name": "serviceId",
+            "name": "subServiceId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1320,18 +1392,43 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "SubService restored successfully"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Deleted SubService not found"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
           }
-        },
+        }
+      }
+    },
+    "/subservices/{subServiceId}/permanent": {
+      "delete": {
         "tags": [
-          "Subservices"
-        ]
+          "SubServices"
+        ],
+        "summary": "Permanently delete SubService",
+        "description": "",
+        "parameters": [
+          {
+            "name": "subServiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SubService permanently deleted"
+          },
+          "404": {
+            "description": "SubService not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
       }
     },
     "/service-analytics/services": {
@@ -1793,10 +1890,7 @@
       "name": "Services"
     },
     {
-      "name": "New Services"
-    },
-    {
-      "name": "Subservices"
+      "name": "SubServices"
     },
     {
       "name": "Service Analytics"

@@ -10,6 +10,7 @@ declare global {
         error: (msg: string, err?: any, meta?: any) => void;
         debug: (msg: string, meta?: any) => void;
       } | undefined;
+      uploadFolder?: string;
     }
   }
 }

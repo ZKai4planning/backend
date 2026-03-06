@@ -10,7 +10,6 @@ import adminUserRoutes from "./adminuser.routes";
 import loginroutes from "./adminauth.routes";
 
 import servicesRoutes from "./service.routes";
-import newServicesRoutes from "./new.services.routes";
 import subservicesRoutes from "./subservices.routes";
 import analyticsRoutes from "./service.analytics.routes";
 
@@ -23,9 +22,8 @@ router.use("/users", authRoutes);
 
 router.use("/profile", profileRoutes);
 router.use("/services", servicesRoutes);
-router.use("/new-services", newServicesRoutes);
 router.use("/subservices", subservicesRoutes);
-router.use("/analytics", analyticsRoutes);
+router.use("/service-analytics", analyticsRoutes);
 router.use("/roles", roleRoutes);
 
 router.use("/address-lookup", addresslookupRoutes);

@@ -2,32 +2,122 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IService extends Document {
   serviceId: string;
-  name: string;
-  description?: string;
-  images: string[]; // array of image URLs (or objects)
+  title: string;
+  subtitle: string;
+  description: string;
+  images: string[];
   status: boolean;
-  subServices?: Types.ObjectId[]; // references to SubServices
+  isDeleted: boolean;
+  deletedAt: Date | null;
+  subServices: Types.ObjectId[];
 }
+
+/* ---------- Regex Helpers ---------- */
+
+const TITLE_REGEX = /^[A-Za-z0-9 &_,()\-:.']+$/;
+const NO_HTML_REGEX = /<[^>]*>/;
+const REPEATED_CHAR_REGEX = /(.)\1{2,}/;
+
+const normalizeWhitespace = (value: string) =>
+  value.replace(/\s+/g, " ").trim();
 
 const serviceSchema = new Schema<IService>(
   {
-    serviceId: { type: String, required: true, unique: true },
-    name: { type: String, required: true, trim: true },
-    description: { type: String },
-    images: {
-      type: [String], // behaves like jsonb array
-      default: []
+    serviceId: {
+      type: String,
+      required: true,
+      unique: true
     },
+
+    title: {
+      type: String,
+      required: [true, "Title is required"],
+      unique: true,
+      trim: true,
+      set: normalizeWhitespace,
+      minlength: [3, "Title must be at least 3 characters"],
+      maxlength: [100, "Title cannot exceed 100 characters"],
+      match: [
+        TITLE_REGEX,
+        "Title can only contain letters, numbers, spaces, &, -, _, :, () and commas"
+      ],
+      validate: [
+        {
+          validator: (value: string) => !REPEATED_CHAR_REGEX.test(value),
+          message:
+            "Title cannot contain more than 2 consecutive identical characters"
+        },
+        {
+          validator: (value: string) => !NO_HTML_REGEX.test(value),
+          message: "Title cannot contain HTML or script tags"
+        }
+      ],
+      description: "Main service title displayed in listings"
+    },
+
+    subtitle: {
+      type: String,
+      required: [true, "Subtitle is required"],
+      trim: true,
+      set: normalizeWhitespace,
+      minlength: [5, "Subtitle must be at least 5 characters"],
+      maxlength: [150, "Subtitle cannot exceed 150 characters"],
+      match: [
+        TITLE_REGEX,
+        "Subtitle can only contain letters, numbers, spaces, &, -, _, :, () and commas"
+      ],
+      validate: [
+        {
+          validator: (value: string) => !REPEATED_CHAR_REGEX.test(value),
+          message:
+            "Subtitle cannot contain more than 2 consecutive identical characters"
+        },
+        {
+          validator: (value: string) => !NO_HTML_REGEX.test(value),
+          message: "Subtitle cannot contain HTML or script tags"
+        }
+      ],
+      description: "Short description displayed above the title in listings"
+    },
+
+    description: {
+      type: String,
+      required: [true, "Description is required"],
+      trim: true,
+      minlength: [10, "Description must be at least 10 characters"],
+      maxlength: [1000, "Description cannot exceed 1000 characters"],
+      description: "Detailed description of the service displayed on the service detail page"
+    },
+
+    images: {
+      type: [String],
+      default: [],
+      description: "Array of image URLs representing the service"
+    },
+
     status: {
       type: Boolean,
-      default: true, // active by default
+      default: true,
+      description: "Indicates whether the service is active or inactive"
     },
-    subServices: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "SubService",
-      },
-    ],
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      description: "Soft delete flag. True means the record is logically deleted"
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+      description: "Timestamp when the service was soft deleted"
+    },
+    subServices: {
+      type: [Schema.Types.ObjectId],
+      ref: "SubService",
+      default: [],
+      description: "References to related SubService documents"
+    },
   },
   { timestamps: true }
 );

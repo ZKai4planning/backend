@@ -1,156 +1,366 @@
 import { Request, Response } from "express";
-import { SubService } from "./subservice.model";
-import { Service } from "./service.model";
+import mongoose from "mongoose";
+import fs from "fs/promises";
+import cloudinary from "../../config/cloudinary";
 import { generateId } from "../../utils/generators";
+import { Service } from "./service.model";
+import { SubService } from "./subservice.model";
 
+/* -------------------------------- */
+/* Response Helpers */
+/* -------------------------------- */
 
+const sendSuccess = (
+  res: Response,
+  statusCode: number,
+  message: string,
+  data?: unknown
+) => res.status(statusCode).json({ success: true, message, data });
 
-/**
- * CREATE SUBSERVICE
- */
-export const createSubService = async (req: Request, res: Response) => {
+const sendError = (res: Response, statusCode: number, message: string) =>
+  res.status(statusCode).json({ success: false, message });
+
+/* -------------------------------- */
+/* Utils */
+/* -------------------------------- */
+
+const toBool = (value: unknown, fallback: boolean) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value.toLowerCase() === "true";
+  return fallback;
+};
+
+const cleanupTempFiles = async (files: Express.Multer.File[] = []) => {
+  await Promise.all(
+    files.map((file) => fs.unlink(file.path).catch(() => undefined))
+  );
+};
+
+const uploadImages = async (files: Express.Multer.File[]) => {
+  if (!files?.length) return [];
+
+  const uploads = await Promise.all(
+    files.map((file) =>
+      cloudinary.uploader.upload(file.path, { folder: "subservices" })
+    )
+  );
+
+  return uploads.map((img) => img.secure_url);
+};
+
+const extractPublicId = (url: string) => {
   try {
+    const parts = url.split("/");
+    const file = parts.pop();
+    const folder = parts.pop();
+    return `${folder}/${file?.split(".")[0]}`;
+  } catch {
+    return null;
+  }
+};
 
-    const { serviceId, name, description, status } = req.body;
+const removeImagesFromCloudinary = async (images: string[]) => {
+  await Promise.all(
+    images.map(async (url) => {
+      const publicId = extractPublicId(url);
+      if (publicId) await cloudinary.uploader.destroy(publicId);
+    })
+  );
+};
 
-    if (!serviceId || !name) {
-      return res.status(400).json({
-        message: "serviceId and name are required"
-      });
-    }
+/* -------------------------------- */
+/* CREATE SUBSERVICE */
+/* -------------------------------- */
 
-    const service = await Service.findOne({ serviceId });
+export const createSubService = async (req: Request, res: Response) => {
+  const files = (req.files as Express.Multer.File[]) || [];
 
-    if (!service) {
-      return res.status(404).json({
-        message: "Parent service not found"
-      });
-    }
+  try {
+    const { serviceId, title, subtitle, description, status } = req.body;
+
+    if (!serviceId || !title || !subtitle || !description)
+      return sendError(res, 400, "Required fields missing");
+
+    const service = await Service.findOne({ serviceId, isDeleted: false });
+    if (!service) return sendError(res, 404, "Parent service not found");
+
+    const imageUrls = await uploadImages(files);
 
     const subService = await SubService.create({
       subServiceId: generateId(),
       service: service._id,
-      name,
+      title,
+      subtitle,
       description,
-      status: status ?? true
+      images: imageUrls,
+      status: toBool(status, true),
+      isDeleted: false,
+      deletedAt: null
     });
 
-    res.status(201).json(subService);
+    /* link to parent service */
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      message: "Failed to create subservice"
-    });
+    service.subServices.push(subService._id);
+    await service.save();
+
+    return sendSuccess(res, 201, "Subservice created successfully", subService);
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, "Failed to create subservice");
+  } finally {
+    await cleanupTempFiles(files);
   }
 };
 
+/* -------------------------------- */
+/* UPDATE SUBSERVICE */
+/* -------------------------------- */
 
-
-/**
- * GET SUBSERVICES BY SERVICE
- */
-export const getSubServicesByService = async (
-  req: Request,
-  res: Response
-) => {
+export const updateSubService = async (req: Request, res: Response) => {
+  const files = (req.files as Express.Multer.File[]) || [];
 
   try {
-
-    const { serviceId } = req.params;
-
-    const service = await Service.findOne({ serviceId });
-
-    if (!service) {
-      return res.status(404).json({
-        message: "Service not found"
-      });
-    }
-
-    const subservices = await SubService.find({
-      service: service._id
-    });
-
-    res.json(subservices);
-
-  } catch (err) {
-    res.status(500).json({
-      message: "Failed to fetch subservices"
-    });
-  }
-};
-
-
-
-/**
- * UPDATE SUBSERVICE
- */
-export const updateSubService = async (
-  req: Request,
-  res: Response
-) => {
-
-  try {
-
     const { subServiceId } = req.params;
-    const { name, description, status } = req.body;
+    const { title, subtitle, description, status } = req.body;
+
+    const subService = await SubService.findOne({
+      subServiceId,
+      isDeleted: false
+    });
+
+    if (!subService) return sendError(res, 404, "Subservice not found");
+
+    const newImages = await uploadImages(files);
+
+    const updatePayload: Partial<typeof subService> = {
+      images: [...subService.images, ...newImages]
+    };
+
+    if (title) updatePayload.title = title;
+    if (subtitle) updatePayload.subtitle = subtitle;
+    if (description) updatePayload.description = description;
+    if (status !== undefined)
+      updatePayload.status = toBool(status, subService.status);
 
     const updated = await SubService.findOneAndUpdate(
       { subServiceId },
-      {
-        name,
-        description,
-        status
-      },
+      updatePayload,
       { new: true }
     );
 
-    if (!updated) {
-      return res.status(404).json({
-        message: "Subservice not found"
-      });
-    }
-
-    res.json(updated);
-
-  } catch (err) {
-    res.status(500).json({
-      message: "Failed to update subservice"
-    });
+    return sendSuccess(res, 200, "Subservice updated successfully", updated);
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, "Failed to update subservice");
+  } finally {
+    await cleanupTempFiles(files);
   }
 };
 
+/* -------------------------------- */
+/* GET SUBSERVICES BY SERVICE */
+/* -------------------------------- */
 
+export const getSubServicesByService = async (req: Request, res: Response) => {
+  try {
+    const { serviceId } = req.params;
+    const includeDeleted = req.query.includeDeleted === "true";
 
-/**
- * DELETE SUBSERVICE
- */
-export const deleteSubService = async (
+    const service = await Service.findOne(
+      includeDeleted ? { serviceId } : { serviceId, isDeleted: false }
+    );
+
+    if (!service) return sendError(res, 404, "Service not found");
+
+    const subservices = await SubService.find(
+      includeDeleted
+        ? { service: service._id }
+        : { service: service._id, isDeleted: false }
+    );
+
+    return sendSuccess(res, 200, "Subservices fetched successfully", subservices);
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, "Failed to fetch subservices");
+  }
+};
+
+/* -------------------------------- */
+/* SUBSERVICE DETAILS */
+/* -------------------------------- */
+
+export const getSubServiceDetails = async (req: Request, res: Response) => {
+  try {
+    const { subServiceId } = req.params;
+    const includeDeleted = req.query.includeDeleted === "true";
+
+    const subService = await SubService.findOne(
+      includeDeleted
+        ? { subServiceId }
+        : { subServiceId, isDeleted: false }
+    ).populate("service", "serviceId title");
+
+    if (!subService) return sendError(res, 404, "Subservice not found");
+
+    return sendSuccess(res, 200, "Subservice fetched successfully", subService);
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, "Failed to fetch subservice");
+  }
+};
+
+/* -------------------------------- */
+/* SOFT DELETE */
+/* -------------------------------- */
+
+export const softDeleteSubService = async (req: Request, res: Response) => {
+  try {
+    const { subServiceId } = req.params;
+
+    const subService = await SubService.findOne({
+      subServiceId,
+      isDeleted: false
+    });
+
+    if (!subService) return sendError(res, 404, "Subservice not found");
+
+    subService.isDeleted = true;
+    subService.deletedAt = new Date();
+    subService.status = false;
+
+    await subService.save();
+
+    return sendSuccess(res, 200, "Subservice soft deleted successfully");
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, "Failed to soft delete subservice");
+  }
+};
+
+/* -------------------------------- */
+/* RESTORE */
+/* -------------------------------- */
+
+export const restoreSubService = async (req: Request, res: Response) => {
+  try {
+    const { subServiceId } = req.params;
+
+    const subService = await SubService.findOne({
+      subServiceId,
+      isDeleted: true
+    });
+
+    if (!subService) return sendError(res, 404, "Deleted subservice not found");
+
+    subService.isDeleted = false;
+    subService.deletedAt = null;
+    subService.status = true;
+
+    await subService.save();
+
+    return sendSuccess(res, 200, "Subservice restored successfully");
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, "Failed to restore subservice");
+  }
+};
+
+/* -------------------------------- */
+/* PERMANENT DELETE */
+/* -------------------------------- */
+
+export const permanentlyDeleteSubService = async (
   req: Request,
   res: Response
 ) => {
+  const session = await mongoose.startSession();
 
   try {
-
     const { subServiceId } = req.params;
 
-    const deleted = await SubService.findOneAndDelete({
-      subServiceId
-    });
+    session.startTransaction();
 
-    if (!deleted) {
-      return res.status(404).json({
-        message: "Subservice not found"
-      });
+    const subService = await SubService.findOne({ subServiceId }).session(
+      session
+    );
+
+    if (!subService) return sendError(res, 404, "Subservice not found");
+
+    await removeImagesFromCloudinary(subService.images);
+
+    await Service.updateOne(
+      { _id: subService.service },
+      { $pull: { subServices: subService._id } }
+    ).session(session);
+
+    await SubService.deleteOne({ _id: subService._id }).session(session);
+
+    await session.commitTransaction();
+
+    return sendSuccess(res, 200, "Subservice permanently deleted");
+  } catch (error) {
+    await session.abortTransaction();
+    console.error(error);
+    return sendError(res, 500, "Failed to delete subservice");
+  } finally {
+    session.endSession();
+  }
+};
+
+/* -------------------------------- */
+/* REMOVE SUB SERVICE IMAGES */
+/* -------------------------------- */
+export const removeSubServiceImages = async (req: Request, res: Response) => {
+  try {
+    const { subServiceId } = req.params;
+    const { images } = req.body;
+
+    if (!Array.isArray(images) || images.length === 0) {
+      return sendError(res, 400, "Images array is required");
     }
 
-    res.json({
-      message: "Subservice deleted successfully"
+    const subService = await SubService.findOne({
+      subServiceId,
+      isDeleted: false
     });
 
-  } catch (err) {
-    res.status(500).json({
-      message: "Failed to delete subservice"
-    });
+    if (!subService) {
+      return sendError(res, 404, "Subservice not found");
+    }
+
+    /* Only remove images that actually belong to this subservice */
+
+    const imagesToRemove = subService.images.filter((img) =>
+      images.includes(img)
+    );
+
+    if (!imagesToRemove.length) {
+      return sendError(res, 400, "No matching images found to remove");
+    }
+
+    /* Remove from Cloudinary */
+
+    await removeImagesFromCloudinary(imagesToRemove);
+
+    /* Update database */
+
+    subService.images = subService.images.filter(
+      (img) => !imagesToRemove.includes(img)
+    );
+
+    await subService.save();
+
+    return sendSuccess(
+      res,
+      200,
+      "Subservice images removed successfully",
+      {
+        removedImages: imagesToRemove,
+        images: subService.images
+      }
+    );
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, "Failed to remove subservice images");
   }
 };
