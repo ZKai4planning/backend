@@ -1,21 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { InferSchemaType } from "mongoose";
 
-export interface IUser {
-  userId: string;
-  email?: string;
-  phoneNumber?: string;
-  fullName?: string;
-  otp: string | null;
-  otpExpiresAt: Date | null;
-  lastLoginAt?: Date;
-  loginAttempts: number;
-  lockUntil?: Date | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const userSchema = new mongoose.Schema<IUser>(
+const userSchema = new mongoose.Schema(
   {
     userId: {
       type: String,
@@ -61,5 +46,7 @@ const userSchema = new mongoose.Schema<IUser>(
   },
   { timestamps: true },
 );
+
+export type IUser = InferSchemaType<typeof userSchema>;
 
 export const User = mongoose.model<IUser>("User", userSchema);
