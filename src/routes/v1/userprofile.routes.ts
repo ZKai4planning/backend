@@ -61,6 +61,9 @@ router.get("/:userId", getProfileByUserId);
  *               fullName:
  *                 type: string
  *                 example: Krishna Kumar
+ *               phoneNumber:
+ *                type: string
+ *                example: +449876543210
  *               bio:
  *                 type: string
  *                 example: Backend developer

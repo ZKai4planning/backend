@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import cloudinary from "../../config/cloudinary";
 import { UserProfile } from "./userprofile.model";
 import { isValidUrl } from "../../utils/validators";
+import { User } from "../client-users/user.model";
 
 /* ------------------------------------------------ */
 /* Get Profile By UserId */
@@ -10,6 +11,14 @@ import { isValidUrl } from "../../utils/validators";
 export const getProfileByUserId = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+
+    const user = await User.findOne({ userId }).lean();
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
 
     const profile = await UserProfile.findOne({ userRefId: userId }).lean();
 
@@ -22,7 +31,21 @@ export const getProfileByUserId = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      data: profile
+      data: {
+        userId: user.userId,
+        profileId: profile.profileId,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        fullName: user.fullName,
+        phone: profile.phone,
+        landline: profile.landline,
+        council: profile.council,
+        profilePicture: profile.profilePicture,
+        bio: profile.bio,
+        address: profile.address,
+        lastLoginAt: user.lastLoginAt,
+        isActive: user.isActive
+      }
     });
 
   } catch (error) {
@@ -45,6 +68,7 @@ export const updateProfileByUserId = async (req: Request, res: Response) => {
 
     const {
       fullName,
+      phoneNumber,
       bio,
       council,
       phone,
@@ -53,6 +77,7 @@ export const updateProfileByUserId = async (req: Request, res: Response) => {
     } = req.body;
 
     const updateFields: any = {};
+    const userUpdateFields: any = {};
 
     /* ---------- Basic Fields ---------- */
 
@@ -63,7 +88,17 @@ export const updateProfileByUserId = async (req: Request, res: Response) => {
           message: "fullName must be a string"
         });
       }
-      updateFields.fullName = fullName.trim();
+      userUpdateFields.fullName = fullName.trim();
+    }
+
+    if (phoneNumber !== undefined) {
+      if (typeof phoneNumber !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "phoneNumber must be a string"
+        });
+      }
+      userUpdateFields.phoneNumber = phoneNumber.trim();
     }
 
     if (bio !== undefined) {
@@ -158,6 +193,19 @@ export const updateProfileByUserId = async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: "No valid fields provided for update"
+      });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { userId: userId },
+      { $set: userUpdateFields },
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
       });
     }
 

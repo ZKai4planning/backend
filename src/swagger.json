@@ -2418,6 +2418,10 @@
                   "type": "string",
                   "example": "any"
                 },
+                "phoneNumber":{
+                  "type": "string",
+                  "example": "+44"
+                },
                 "bio": {
                   "type": "string",
                   "example": "any"

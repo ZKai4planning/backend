@@ -4,8 +4,6 @@ export interface IUserProfile extends Document {
   profileId: string;
   userRefId: string;
 
-  fullName: string;
-
   phone?: {
     countryCode: string;
     number: string;
@@ -61,20 +59,6 @@ const userProfileSchema = new Schema<IUserProfile>(
     },
 
     /* ---------- Basic Profile Info ---------- */
-
-    fullName: {
-      type: String,
-      trim: true,
-      set: normalizeWhitespace,
-      minlength: [2, "Full name must be at least 2 characters"],
-      maxlength: [100, "Full name cannot exceed 100 characters"],
-      match: [NAME_REGEX, "Full name contains invalid characters"],
-      validate: {
-        validator: (value: string) => !NO_HTML_REGEX.test(value),
-        message: "Full name cannot contain HTML or script tags"
-      },
-      description: "Full name of the user displayed in the profile"
-    },
 
     profilePicture: {
       type: String,
