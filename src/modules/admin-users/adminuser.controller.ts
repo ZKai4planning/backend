@@ -230,14 +230,12 @@ export const adminLogin = async (req: Request, res: Response) => {
   try {
     const { email, password, region } = req.body;
 
-    if (!region) {
-      return res.status(400).json({ message: "Region is required" });
-    }
-
     const normalizedRegion =
-      typeof region === "string" ? region.trim().toLowerCase() : region;
+      typeof region === "string" ? region.trim().toLowerCase() : undefined;
+    const regionProvided =
+      typeof normalizedRegion === "string" && normalizedRegion.length > 0;
 
-    if (normalizedRegion !== "in" && normalizedRegion !== "uk") {
+    if (regionProvided && normalizedRegion !== "in" && normalizedRegion !== "uk") {
       return res.status(400).json({ message: "Region must be 'in' or 'uk'" });
     }
 
@@ -254,7 +252,25 @@ export const adminLogin = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Account not found" });
     }
 
-    if (admin.region !== normalizedRegion) {
+    let effectiveRegion = normalizedRegion;
+
+    if (!effectiveRegion) {
+      const role = await Role.findOne({ roleId: admin.roleId });
+      const roleName = role?.roleName?.toLowerCase() || "";
+      const isAdminRole = roleName.includes("admin");
+
+      if (!isAdminRole) {
+        return res.status(400).json({ message: "Region is required" });
+      }
+
+      if (!admin.region) {
+        return res.status(400).json({ message: "Region missing for admin user" });
+      }
+
+      effectiveRegion = admin.region;
+    }
+
+    if (admin.region !== effectiveRegion) {
       return res.status(403).json({ message: "Account not in this region" });
     }
 

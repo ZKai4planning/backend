@@ -6,6 +6,14 @@ export const isValidPhone = (value: string) => {
   return /^\+44\d{10}$/.test(value);
 };
 
+export const normalizeEmail = (value?: string | null) => {
+  return typeof value === "string" ? value.trim().toLowerCase() : undefined;
+};
+
+export const normalizePhone = (value?: string | null) => {
+  return typeof value === "string" ? value.trim() : undefined;
+};
+
 
 export const isValidName = (name: string): boolean => {
   const nameRegex = /^[A-Za-z ]{2,50}$/;

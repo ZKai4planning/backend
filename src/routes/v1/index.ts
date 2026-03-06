@@ -8,6 +8,8 @@ import addresslookupRoutes from "./address-lookup.routes";
 import configurationRoutes from "./config.routes";
 import adminUserRoutes from "./adminuser.routes";
 import loginroutes from "./adminauth.routes";
+import employeeAuthRoutes from "./employeeauth.routes";
+import employeeUserRoutes from "./employeeuser.routes";
 
 import servicesRoutes from "./service.routes";
 import subservicesRoutes from "./subservices.routes";
@@ -31,6 +33,8 @@ router.use("/address-lookup", addresslookupRoutes);
 router.use("/configuration", configurationRoutes);
 router.use("/admin/users", adminUserRoutes);
 router.use("/admin/auth", loginroutes);
+router.use("/employee/auth", employeeAuthRoutes);
+router.use("/employee/users", employeeUserRoutes);
 
 
 export default router;
