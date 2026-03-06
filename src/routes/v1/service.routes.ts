@@ -125,6 +125,12 @@ router.get(
   /*
     #swagger.tags = ["Services"]
     #swagger.summary = "Get active service list"
+
+    #swagger.parameters['includeDeleted'] = {
+      in: 'query',
+      required: false,
+      type: 'boolean'
+    }
   */
   getServiceList
 );

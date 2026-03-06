@@ -1208,6 +1208,14 @@
         ],
         "summary": "Get active services list",
         "description": "",
+        "parameters": [
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Services fetched successfully"

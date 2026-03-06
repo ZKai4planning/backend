@@ -266,21 +266,53 @@ export const updateService = async (req: Request, res: Response) => {
 /* GET ACTIVE SERVICES */
 /* -------------------------------- */
 
-export const getServiceList = async (_req: Request, res: Response) => {
+export const getServiceList = async (req: Request, res: Response) => {
   try {
+    const includeDeleted = req.query.includeDeleted === "true";
     const services = await Service.find(
-      { status: true },
-      { serviceId: 1, title: 1, serviceName: 1, status: 1, _id: 0 }
-    ).lean();
+      includeDeleted ? {} : { status: true },
+      {
+        serviceId: 1,
+        title: 1,
+        serviceName: 1,
+        description: 1,
+        images: 1,
+        status: 1,
+        subServices: 1,
+        _id: 0
+      }
+    )
+      .populate({
+        path: "subServices",
+        match: { status: true },
+        select: "subServiceId title subServiceName description images status -_id"
+      })
+      .lean();
 
     const formattedServices = services.map((service: any) => ({
       serviceId: service.serviceId,
       title: service.title,
       serviceName: service.serviceName,
-      status: service.status
+      description: service.description,
+      images: service.images,
+      status: service.status,
+      subServices: service.subServices.map((sub: any) => ({
+        serviceId: service.serviceId, // attach parent serviceId
+        subServiceId: sub.subServiceId,
+        title: sub.title,
+        subServiceName: sub.subServiceName,
+        description: sub.description,
+        images: sub.images,
+        status: sub.status
+      }))
     }));
 
-    return sendSuccess(res, 200, "Services fetched successfully", formattedServices);
+    return sendSuccess(
+      res,
+      200,
+      "Services fetched successfully",
+      formattedServices
+    );
   } catch (error) {
     console.error(error);
     return sendError(res, 500, "Failed to fetch services");
@@ -295,9 +327,7 @@ export const getAllServiceList = async (req: Request, res: Response) => {
   try {
     const includeDeleted = req.query.includeDeleted === "true";
 
-    const filter = { status: !includeDeleted };
-
-    const services = await Service.find(filter).select(
+    const services = await Service.find(includeDeleted ? {} : { status: true }).select(
       "serviceId title serviceName description images status"
     ).lean();
 
@@ -325,7 +355,10 @@ export const getServiceDetails = async (req: Request, res: Response) => {
   try {
     const { serviceId } = req.params;
     const includeDeleted = req.query.includeDeleted === "true";
-    const service = await Service.findOne({ serviceId, status: !includeDeleted }).populate("subServices");
+    const service = await Service.findOne({
+      serviceId,
+      ...(includeDeleted ? {} : { status: true })
+    }).populate("subServices");
 
     if (!service) return sendError(res, 404, "Service not found");
 

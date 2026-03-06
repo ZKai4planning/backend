@@ -161,11 +161,11 @@ export const getSubServicesByService = async (req: Request, res: Response) => {
     const { serviceId } = req.params;
     const includeDeleted = req.query.includeDeleted === "true";
 
-    const service = await Service.findOne({ serviceId, status: !includeDeleted } );
+    const service = await Service.findOne({ serviceId, ...(includeDeleted ? {} : { status: true }) } );
 
     if (!service) return sendError(res, 404, "Service not found");
 
-    const subservices = await SubService.find({ service: service._id, status: !includeDeleted });
+    const subservices = await SubService.find({ service: service._id, ...(includeDeleted ? {} : { status: true }) });
 
     return sendSuccess(res, 200, "Subservices fetched successfully", subservices);
   } catch (error) {
@@ -183,7 +183,7 @@ export const getSubServiceDetails = async (req: Request, res: Response) => {
     const { subServiceId } = req.params;
     const includeDeleted = req.query.includeDeleted === "true";
 
-    const subService = await SubService.findOne({ subServiceId, status: !includeDeleted }).populate(
+    const subService = await SubService.findOne({ subServiceId, ...(includeDeleted ? {} : { status: true }) }).populate(
       "service",
       "serviceId title subServiceName"
     );
