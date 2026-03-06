@@ -33,7 +33,27 @@ app.use(
 app.use(express.json());
 app.use(requestLogger);
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerFile, {
+    swaggerOptions: {
+      deepLinking: true,
+      displayRequestDuration: true,
+
+      showExtensions: true,
+      showCommonExtensions: true,
+
+      filter: true, // search/filter APIs
+
+      tryItOutEnabled: true,
+
+      persistAuthorization: true, // keep JWT token after refresh
+
+      // tagsSorter: "alpha",
+      // operationsSorter: "alpha",
+    }
+  }));
 
 app.use("/api", routes); 
 
