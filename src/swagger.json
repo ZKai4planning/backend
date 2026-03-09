@@ -1892,8 +1892,7 @@
               "properties": {
                 "image": {
                   "type": "file",
-                  "example": 
-                    "https://res.cloudinary.com/demo/image/upload/subservices/sample.jpg"
+                  "example": "https://res.cloudinary.com/demo/image/upload/subservices/sample.jpg"
                 }
               }
             }
@@ -2258,96 +2257,97 @@
       }
     },
     "/configuration": {
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "defaultPassword": {
-                  "example": "any"
-                },
-                "logoUrl": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Configuration"
-        ]
+  "post": {
+    "tags": ["Admin Configuration"],
+    "summary": "Create system configuration",
+    "description": "Creates the initial system configuration. This endpoint can only be used if configuration does not already exist.",
+    "consumes": ["multipart/form-data"],
+    "parameters": [
+      {
+        "name": "defaultPassword",
+        "in": "formData",
+        "required": true,
+        "type": "string",
+        "description": "Default password. Must contain minimum 8 characters, including uppercase, lowercase, digit, and special character.",
+        "example": "Admin@123"
       },
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Configuration"
-        ]
-      },
-      "put": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "defaultPassword": {
-                  "example": "any"
-                },
-                "logoUrl": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Configuration"
-        ]
+      {
+        "name": "logo",
+        "in": "formData",
+        "required": false,
+        "type": "file",
+        "description": "System logo image"
       }
-    },
+    ],
+    "responses": {
+      "201": {
+        "description": "Configuration created successfully"
+      },
+      "400": {
+        "description": "Configuration already exists or password policy failed"
+      },
+      "500": {
+        "description": "Internal Server Error"
+      }
+    }
+  },
+
+  "get": {
+    "tags": ["Admin Configuration"],
+    "summary": "Get system configuration",
+    "description": "Fetches the current system configuration including logo URL.",
+    "responses": {
+      "200": {
+        "description": "Configuration fetched successfully"
+      },
+      "404": {
+        "description": "Configuration not found"
+      },
+      "500": {
+        "description": "Internal Server Error"
+      }
+    }
+  },
+
+  "put": {
+    "tags": ["Admin Configuration"],
+    "summary": "Update system configuration",
+    "description": "Updates system configuration such as default password or logo.",
+    "consumes": ["multipart/form-data"],
+    "parameters": [
+      {
+        "name": "defaultPassword",
+        "in": "formData",
+        "required": false,
+        "type": "string",
+        "description": "New default password. Must contain minimum 8 characters, including uppercase, lowercase, digit, and special character.",
+        "example": "Admin@123"
+      },
+      {
+        "name": "logo",
+        "in": "formData",
+        "required": false,
+        "type": "file",
+        "description": "New system logo image"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Configuration updated successfully"
+      },
+      "404": {
+        "description": "Configuration not found"
+      },
+      "500": {
+        "description": "Internal Server Error"
+      }
+    }
+  }
+},
     "/profile/{userId}": {
       "get": {
         "tags": [
-          "Profile"
+          "Client Profile"
         ],
         "summary": "Get user profile by userId",
         "description": "Fetch the profile details associated with a specific user ID.",
@@ -2374,7 +2374,7 @@
       },
       "put": {
         "tags": [
-          "Profile"
+          "Client Profile"
         ],
         "summary": "Update user profile",
         "description": "Update profile information such as name, bio, phone numbers, council, and address.",
@@ -2397,7 +2397,7 @@
                   "type": "string",
                   "example": "any"
                 },
-                "phoneNumber":{
+                "phoneNumber": {
                   "type": "string",
                   "example": "+44"
                 },
@@ -2491,7 +2491,7 @@
     "/profile/{userId}/picture": {
       "put": {
         "tags": [
-          "Profile"
+          "Client Profile"
         ],
         "summary": "Upload or update profile picture",
         "description": "Upload a profile picture for the specified user.",
@@ -2533,49 +2533,64 @@
   },
   "tags": [
     {
-      "name": "Client Auth"
+      "name": "Admin Configuration",
+      "description": "Endpoints for managing system-level configuration and application settings."
     },
     {
-      "name": "Client Users"
+      "name": "Roles",
+      "description": "APIs for creating, updating, and managing user roles and permissions within the system."
     },
     {
-      "name": "Admin Auth"
+      "name": "Client Auth",
+      "description": "Authentication endpoints for clients including login, registration, token management, and password operations."
     },
     {
-      "name": "Employee Auth"
+      "name": "Client Users",
+      "description": "APIs to manage client user accounts including creation, updates, listing, and deletion."
     },
     {
-      "name": "Admin Users"
+      "name": "Client Profile",
+      "description": "Endpoints for retrieving and updating client profile information."
     },
     {
-      "name": "Employee Users"
+      "name": "Admin Auth",
+      "description": "Authentication APIs for administrators including login, token refresh, and password management."
     },
     {
-      "name": "Admin Profile"
+      "name": "Admin Users",
+      "description": "Endpoints for managing administrator accounts including creation, updates, role assignments, and removal."
     },
     {
-      "name": "Employee Profile"
+      "name": "Admin Profile",
+      "description": "APIs to retrieve and update administrator profile details."
     },
     {
-      "name": "Services"
+      "name": "Employee Auth",
+      "description": "Authentication endpoints for employees including login, token handling, and password management."
     },
     {
-      "name": "SubServices"
+      "name": "Employee Users",
+      "description": "APIs for managing employee accounts including onboarding, updates, listing, and deletion."
     },
     {
-      "name": "Service Analytics"
+      "name": "Employee Profile",
+      "description": "Endpoints for accessing and updating employee profile information."
     },
     {
-      "name": "Roles"
+      "name": "Address Lookup",
+      "description": "APIs for retrieving location and address-related data such as states, cities, or postal codes."
     },
     {
-      "name": "Address Lookup"
+      "name": "Services",
+      "description": "Endpoints for managing available services including creation, updates, listing, and deletion."
     },
     {
-      "name": "Configuration"
+      "name": "SubServices",
+      "description": "APIs for managing sub-services associated with primary services."
     },
     {
-      "name": "Profile"
+      "name": "Service Analytics",
+      "description": "Endpoints for retrieving analytics, metrics, and reports related to services usage and performance."
     }
   ]
 }

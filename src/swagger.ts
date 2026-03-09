@@ -23,21 +23,21 @@ const doc = {
 const outputFile = "./src/swagger.json";
 
 const routeConfigs: RouteConfig[] = [
+  { file: "./src/routes/v1/config.routes.ts", prefix: "/configuration", tag: "Admin Configuration" },
+  { file: "./src/routes/v1/role.routes.ts", prefix: "/roles", tag: "Roles" },
   { file: "./src/routes/v1/auth.routes.ts", prefix: "/auth", tag: "Client Auth" },
   { file: "./src/routes/v1/user.routes.ts", prefix: "/users", tag: "Client Users" },
+  { file: "./src/routes/v1/userprofile.routes.ts", prefix: "/profile", tag: "Client Profile" },
   { file: "./src/routes/v1/adminauth.routes.ts", prefix: "/admin/auth", tag: "Admin Auth" },
-  { file: "./src/routes/v1/employeeauth.routes.ts", prefix: "/employee/auth", tag: "Employee Auth" },
   { file: "./src/routes/v1/adminuser.routes.ts", prefix: "/admin/users", tag: "Admin Users" },
-  { file: "./src/routes/v1/employeeuser.routes.ts", prefix: "/employee/users", tag: "Employee Users" },
   { file: "./src/routes/v1/adminprofile.routes.ts", prefix: "/admin/profile", tag: "Admin Profile" },
+  { file: "./src/routes/v1/employeeauth.routes.ts", prefix: "/employee/auth", tag: "Employee Auth" },
+  { file: "./src/routes/v1/employeeuser.routes.ts", prefix: "/employee/users", tag: "Employee Users" },
   { file: "./src/routes/v1/employeeprofile.routes.ts", prefix: "/employee/profile", tag: "Employee Profile" },
+  { file: "./src/routes/v1/address-lookup.routes.ts", prefix: "/address-lookup", tag: "Address Lookup" },
   { file: "./src/routes/v1/service.routes.ts", prefix: "/services", tag: "Services" },
   { file: "./src/routes/v1/subservices.routes.ts", prefix: "/subservices", tag: "SubServices" },
-  { file: "./src/routes/v1/service.analytics.routes.ts", prefix: "/service-analytics", tag: "Service Analytics" },
-  { file: "./src/routes/v1/role.routes.ts", prefix: "/roles", tag: "Roles" },
-  { file: "./src/routes/v1/address-lookup.routes.ts", prefix: "/address-lookup", tag: "Address Lookup" },
-  { file: "./src/routes/v1/config.routes.ts", prefix: "/configuration", tag: "Configuration" },
-  { file: "./src/routes/v1/userprofile.routes.ts", prefix: "/profile", tag: "Profile" },
+  { file: "./src/routes/v1/service.analytics.routes.ts", prefix: "/service-analytics", tag: "Service Analytics" }
 ];
 
 const joinPath = (prefix: string, routePath: string) => {
