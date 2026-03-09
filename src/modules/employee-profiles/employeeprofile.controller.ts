@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { generateId } from "../../utils/generators";
 import {
   isValidEmail,
-  isValidInternationalPhone,
+  isValidIndiaUKPhoneNumber,
 } from "../../utils/validators";
 import cloudinary from "../../config/cloudinary";
 import { Employee } from "../employee-users/employee.model";
@@ -142,10 +142,10 @@ export const updateEmployeeProfileByUserId = async (
     if (phoneNumber !== undefined) {
       if (
         typeof phoneNumber !== "string" ||
-        !isValidInternationalPhone(phoneNumber)
+        !isValidIndiaUKPhoneNumber(phoneNumber)
       ) {
         return res.status(400).json({
-          message: "`phoneNumber` must be a valid international phone number",
+          message: "`phoneNumber` must be a valid Indian or UK phone number",
         });
       }
       profileUpdates.phoneNumber = phoneNumber.trim();

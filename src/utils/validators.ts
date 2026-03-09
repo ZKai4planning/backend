@@ -10,6 +10,20 @@ export const isValidInternationalPhone = (value: string) => {
   return /^\+?[1-9]\d{7,14}$/.test(value.trim());
 };
 
+export const isValidIndianPhone = (value: string) => {
+  const phone = value.replace(/\s/g, "");
+  return /^\+91[6-9]\d{9}$/.test(phone);
+};
+
+export const isValidIndiaUKPhoneNumber = (value: string) => {
+  const phone = value.replace(/\s/g, "");
+
+  const isIndian = /^\+91[6-9]\d{9}$/.test(phone);   // +91XXXXXXXXXX
+  const isUK = /^\+44\d{10}$/.test(phone);           // +44XXXXXXXXXX
+
+  return isIndian || isUK;
+};
+
 export const normalizeEmail = (value?: string | null) => {
   return typeof value === "string" ? value.trim().toLowerCase() : undefined;
 };
