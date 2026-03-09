@@ -32,20 +32,22 @@ const toBool = (value: unknown, fallback: boolean) => {
 
 const cleanupTempFiles = async (files: Express.Multer.File[] = []) => {
   await Promise.all(
-    files.map((file) => fs.unlink(file.path).catch(() => undefined))
+    files.map((file) => fs.unlink(file.path).catch(() => { }))
   );
 };
 
-const uploadImages = async (files: Express.Multer.File[]) => {
-  if (!files?.length) return [];
+/* -------------------------------- */
+/* Cloudinary Helpers */
+/* -------------------------------- */
 
-  const uploads = await Promise.all(
-    files.map((file) =>
-      cloudinary.uploader.upload(file.path, { folder: "subservices" })
-    )
-  );
+const uploadImage = async (files: Express.Multer.File[]) => {
+  if (!files?.length) return "";
 
-  return uploads.map((img) => img.secure_url);
+  const upload = await cloudinary.uploader.upload(files[0].path, {
+    folder: "subservices"
+  });
+
+  return upload.secure_url;
 };
 
 const extractPublicId = (url: string) => {
@@ -59,13 +61,11 @@ const extractPublicId = (url: string) => {
   }
 };
 
-const removeImagesFromCloudinary = async (images: string[]) => {
-  await Promise.all(
-    images.map(async (url) => {
-      const publicId = extractPublicId(url);
-      if (publicId) await cloudinary.uploader.destroy(publicId);
-    })
-  );
+const removeImageFromCloudinary = async (image: string) => {
+  if (!image) return;
+
+  const publicId = extractPublicId(image);
+  if (publicId) await cloudinary.uploader.destroy(publicId);
 };
 
 /* -------------------------------- */
@@ -73,7 +73,8 @@ const removeImagesFromCloudinary = async (images: string[]) => {
 /* -------------------------------- */
 
 export const createSubService = async (req: Request, res: Response) => {
-  const files = (req.files as Express.Multer.File[]) || [];
+  const files = (req.files as Express.Multer.File[]) || 
+              (req.file ? [req.file] : []);
 
   try {
     const { serviceId, title, subServiceName, description, status } = req.body;
@@ -84,15 +85,15 @@ export const createSubService = async (req: Request, res: Response) => {
     const service = await Service.findOne({ serviceId });
     if (!service) return sendError(res, 404, "Parent service not found");
 
-    const imageUrls = await uploadImages(files);
+    const imageUrl = await uploadImage(files);
 
     const subService = await SubService.create({
       subServiceId: generateId(),
       service: service._id,
       title,
-      subServiceName: subServiceName,
+      subServiceName,
       description,
-      images: imageUrls,
+      image: imageUrl,
       status: toBool(status, true)
     });
 
@@ -115,7 +116,8 @@ export const createSubService = async (req: Request, res: Response) => {
 /* -------------------------------- */
 
 export const updateSubService = async (req: Request, res: Response) => {
-  const files = (req.files as Express.Multer.File[]) || [];
+  const files = (req.files as Express.Multer.File[]) || 
+              (req.file ? [req.file] : []);
 
   try {
     const { subServiceId } = req.params;
@@ -125,10 +127,10 @@ export const updateSubService = async (req: Request, res: Response) => {
 
     if (!subService) return sendError(res, 404, "Subservice not found");
 
-    const newImages = await uploadImages(files);
+    const newImage = await uploadImage(files);
 
-    const updatePayload: Partial<typeof subService> = {
-      images: [...subService.images, ...newImages]
+    const updatePayload: any = {
+      image: newImage || subService.image
     };
 
     if (title) updatePayload.title = title;
@@ -161,7 +163,7 @@ export const getSubServicesByService = async (req: Request, res: Response) => {
     const { serviceId } = req.params;
     const includeDeleted = req.query.includeDeleted === "true";
 
-    const service = await Service.findOne({ serviceId, ...(includeDeleted ? {} : { status: true }) } );
+    const service = await Service.findOne({ serviceId, ...(includeDeleted ? {} : { status: true }) });
 
     if (!service) return sendError(res, 404, "Service not found");
 
@@ -268,7 +270,7 @@ export const permanentlyDeleteSubService = async (
 
     if (!subService) return sendError(res, 404, "Subservice not found");
 
-    await removeImagesFromCloudinary(subService.images);
+    await removeImageFromCloudinary(subService.image);
 
     await Service.updateOne(
       { _id: subService.service },
@@ -290,15 +292,15 @@ export const permanentlyDeleteSubService = async (
 };
 
 /* -------------------------------- */
-/* REMOVE SUB SERVICE IMAGES */
+/* REMOVE SUB SERVICE IMAGE */
 /* -------------------------------- */
-export const removeSubServiceImages = async (req: Request, res: Response) => {
+export const removeSubServiceImage = async (req: Request, res: Response) => {
   try {
     const { subServiceId } = req.params;
-    const { images } = req.body;
+    const { image } = req.body;
 
-    if (!Array.isArray(images) || images.length === 0) {
-      return sendError(res, 400, "Images array is required");
+    if (!image) {
+      return sendError(res, 400, "Image is required");
     }
 
     const subService = await SubService.findOne({
@@ -309,39 +311,31 @@ export const removeSubServiceImages = async (req: Request, res: Response) => {
       return sendError(res, 404, "Subservice not found");
     }
 
-    /* Only remove images that actually belong to this subservice */
+    /* Ensure the provided image matches stored image */
 
-    const imagesToRemove = subService.images.filter((img) =>
-      images.includes(img)
-    );
-
-    if (!imagesToRemove.length) {
-      return sendError(res, 400, "No matching images found to remove");
+    if (subService.image !== image) {
+      return sendError(res, 400, "Image does not match service image");
     }
 
-    /* Remove from Cloudinary */
+    /* Remove image from Cloudinary */
 
-    await removeImagesFromCloudinary(imagesToRemove);
+    await removeImageFromCloudinary(subService.image);
 
-    /* Update database */
+    /* Remove from DB */
 
-    subService.images = subService.images.filter(
-      (img) => !imagesToRemove.includes(img)
-    );
-
+    subService.image = "";
     await subService.save();
 
     return sendSuccess(
       res,
       200,
-      "Subservice images removed successfully",
+      "Subservice image removed successfully",
       {
-        removedImages: imagesToRemove,
-        images: subService.images
+        image: subService.image
       }
     );
   } catch (error) {
     console.error(error);
-    return sendError(res, 500, "Failed to remove subservice images");
+    return sendError(res, 500, "Failed to remove subservice image");
   }
 };

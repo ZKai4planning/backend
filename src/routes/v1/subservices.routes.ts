@@ -6,7 +6,7 @@ import {
   updateSubService,
   getSubServiceDetails,
   getSubServicesByService,
-  removeSubServiceImages,
+  removeSubServiceImage,
   softDeleteSubService,
   restoreSubService,
   permanentlyDeleteSubService,
@@ -32,9 +32,9 @@ router.post(
     #swagger.parameters['subServiceName'] = { in: 'formData', required: true, type: 'string' }
     #swagger.parameters['description'] = { in: 'formData', required: true, type: 'string' }
     #swagger.parameters['status'] = { in: 'formData', required: false, type: 'boolean' }
-    #swagger.parameters['images'] = { in: 'formData', required: false, type: 'array', items: { type: 'file' } }
+    #swagger.parameters['image'] = { in: 'formData', required: false, type: 'file' }
   */
-  upload.array("images"),
+  upload.single("image"),
   createSubService
 );
 
@@ -57,9 +57,9 @@ router.put(
     #swagger.parameters['subServiceName'] = { in: 'formData', required: false, type: 'string' }
     #swagger.parameters['description'] = { in: 'formData', required: false, type: 'string' }
     #swagger.parameters['status'] = { in: 'formData', required: false, type: 'boolean' }
-    #swagger.parameters['images'] = { in: 'formData', required: false, type: 'array', items: { type: 'file' } }
+    #swagger.parameters['image'] = { in: 'formData', required: false, type: 'file' }
   */
-  upload.array("images"),
+  upload.single("image"),
   updateSubService
 );
 
@@ -70,13 +70,13 @@ router.put(
  */
 
 /**
- * Remove images from SubService
+ * Remove image from SubService
  */
 router.delete(
-  "/:subServiceId/images",
+  "/:subServiceId/image",
   /*
     #swagger.tags = ["SubServices"]
-    #swagger.summary = "Remove images from a SubService"
+    #swagger.summary = "Remove image from a SubService"
 
     #swagger.parameters['subServiceId'] = { in: 'path', required: true, type: 'string' }
 
@@ -84,13 +84,11 @@ router.delete(
       in: 'body',
       required: true,
       schema: {
-        images: [
-          "https://res.cloudinary.com/demo/image/upload/subservices/sample.jpg"
-        ]
+        image:"https://res.cloudinary.com/demo/image/upload/subservices/sample.jpg"
       }
     }
   */
-  removeSubServiceImages
+  removeSubServiceImage
 );
 
 /**

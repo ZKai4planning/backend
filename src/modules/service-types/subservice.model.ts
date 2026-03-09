@@ -6,7 +6,7 @@ export interface ISubService extends Document {
   title: string;
   subServiceName: string;
   description: string;
-  images: string[];
+  image: string;
   status: boolean;
 }
 
@@ -96,10 +96,11 @@ const subServiceSchema = new Schema<ISubService>(
         "Detailed description of the sub service displayed on the sub service detail page"
     },
 
-    images: {
-      type: [String],
-      default: [],
-      description: "Array of image URLs representing the sub service"
+    image: {
+      type: String,
+      default: "",
+      trim: true,
+      description: "URL of the main image representing the sub service"
     },
 
     status: {

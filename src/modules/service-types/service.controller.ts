@@ -44,24 +44,22 @@ const formatMongooseValidationErrors = (error: any) => {
 };
 
 const cleanupTempFiles = async (files: Express.Multer.File[] = []) => {
-  await Promise.all(
-    files.map((file) => fs.unlink(file.path).catch(() => undefined))
-  );
+  await Promise.all(files.map((file) => fs.unlink(file.path).catch(() => { })));
 };
 
-const uploadImages = async (
+/* -------------------------------- */
+/* Cloudinary Helpers */
+/* -------------------------------- */
+
+const uploadImage = async (
   files: Express.Multer.File[],
   folder: "services" | "subservices"
 ) => {
-  if (!files?.length) return [];
+  if (!files?.length) return "";
 
-  const uploads = await Promise.all(
-    files.map((file) =>
-      cloudinary.uploader.upload(file.path, { folder })
-    )
-  );
+  const upload = await cloudinary.uploader.upload(files[0].path, { folder });
 
-  return uploads.map((img) => img.secure_url);
+  return upload.secure_url;
 };
 
 const extractPublicId = (url: string) => {
@@ -75,15 +73,11 @@ const extractPublicId = (url: string) => {
   }
 };
 
-const removeCloudinaryImages = async (images: string[]) => {
-  if (!images?.length) return;
+const removeCloudinaryImage = async (image: string) => {
+  if (!image) return;
 
-  await Promise.all(
-    images.map(async (url) => {
-      const publicId = extractPublicId(url);
-      if (publicId) await cloudinary.uploader.destroy(publicId);
-    })
-  );
+  const publicId = extractPublicId(image);
+  if (publicId) await cloudinary.uploader.destroy(publicId);
 };
 
 /* -------------------------------- */
@@ -91,7 +85,8 @@ const removeCloudinaryImages = async (images: string[]) => {
 /* -------------------------------- */
 
 export const createServiceOrSubService = async (req: Request, res: Response) => {
-  const files = (req.files as Express.Multer.File[]) || [];
+  const files = (req.files as Express.Multer.File[]) || 
+              (req.file ? [req.file] : []);
 
   try {
     const { serviceId, status } = req.body;
@@ -130,7 +125,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
         return sendError(res, 409, "SubService with this title already exists for this service");
       }
 
-      const imageUrls = await uploadImages(files, "subservices");
+      const imageUrl = await uploadImage(files, "subservices");
 
       const subService = await SubService.create({
         subServiceId: generateId(),
@@ -138,7 +133,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
         title,
         subServiceName: serviceName,
         description,
-        images: imageUrls,
+        image: imageUrl,
         status: toBool(status, true)
       });
 
@@ -167,14 +162,14 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
       return sendError(res, 409, "Service with this title already exists");
     }
 
-    const imageUrls = await uploadImages(files, "services");
+    const imageUrl = await uploadImage(files, "services");
 
     const service = await Service.create({
       serviceId: generateId(),
       title,
       serviceName: serviceName,
       description,
-      images: imageUrls,
+      image: imageUrl,
       status: toBool(status, true),
       subServices: []
     });
@@ -208,7 +203,8 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
 /* -------------------------------- */
 
 export const createService = async (req: Request, res: Response) => {
-  const files = (req.files as Express.Multer.File[]) || [];
+  const files = (req.files as Express.Multer.File[]) || 
+              (req.file ? [req.file] : []);
 
   try {
     const { status } = req.body;
@@ -233,14 +229,14 @@ export const createService = async (req: Request, res: Response) => {
       return sendError(res, 409, "Service with this title already exists");
     }
 
-    const imageUrls = await uploadImages(files, "services");
+    const imageUrl = await uploadImage(files, "services");
 
     const service = await Service.create({
       serviceId: generateId(),
       title,
       serviceName: serviceName,
       description,
-      images: imageUrls,
+      image: imageUrl,
       status: toBool(status, true)
     });
 
@@ -269,7 +265,8 @@ export const createService = async (req: Request, res: Response) => {
 /* -------------------------------- */
 
 export const updateService = async (req: Request, res: Response) => {
-  const files = (req.files as Express.Multer.File[]) || [];
+  const files = (req.files as Express.Multer.File[]) || 
+              (req.file ? [req.file] : []);
 
   try {
     const { serviceId } = req.params;
@@ -288,10 +285,10 @@ export const updateService = async (req: Request, res: Response) => {
     const service = await Service.findOne({ serviceId });
     if (!service) return sendError(res, 404, "Service not found");
 
-    const newImages = await uploadImages(files, "services");
+    const newImage = await uploadImage(files, "services");
 
     const updatePayload: any = {
-      images: [...service.images, ...newImages]
+      image: newImage || service.image
     };
 
     if (title !== undefined) {
@@ -351,7 +348,7 @@ export const getServiceList = async (req: Request, res: Response) => {
         title: 1,
         serviceName: 1,
         description: 1,
-        images: 1,
+        image: 1,
         status: 1,
         subServices: 1,
         _id: 0
@@ -360,7 +357,7 @@ export const getServiceList = async (req: Request, res: Response) => {
       .populate({
         path: "subServices",
         match: { status: true },
-        select: "subServiceId title subServiceName description images status -_id"
+        select: "subServiceId title subServiceName description image status -_id"
       })
       .lean();
 
@@ -369,7 +366,7 @@ export const getServiceList = async (req: Request, res: Response) => {
       title: service.title,
       serviceName: service.serviceName,
       description: service.description,
-      images: service.images,
+      image: service.image,
       status: service.status,
       subServices: service.subServices.map((sub: any) => ({
         serviceId: service.serviceId, // attach parent serviceId
@@ -377,7 +374,7 @@ export const getServiceList = async (req: Request, res: Response) => {
         title: sub.title,
         subServiceName: sub.subServiceName,
         description: sub.description,
-        images: sub.images,
+        image: sub.image,
         status: sub.status
       }))
     }));
@@ -403,7 +400,7 @@ export const getAllServiceList = async (req: Request, res: Response) => {
     const includeDeleted = req.query.includeDeleted === "true";
 
     const services = await Service.find(includeDeleted ? {} : { status: true }).select(
-      "serviceId title serviceName description images status"
+      "serviceId title serviceName description image status"
     ).lean();
 
     const formattedServices = services.map((service: any) => ({
@@ -411,7 +408,7 @@ export const getAllServiceList = async (req: Request, res: Response) => {
       title: service.title,
       serviceName: service.serviceName,
       description: service.description,
-      images: service.images,
+      image: service.image,
       status: service.status
     }));
 
@@ -513,14 +510,14 @@ export const permanentlyDeleteService = async (req: Request, res: Response) => {
     const service = await Service.findOne({ serviceId }).session(session);
     if (!service) return sendError(res, 404, "Service not found");
 
-    await removeCloudinaryImages(service.images);
+    await removeCloudinaryImage(service.image);
 
     const subServices = await SubService.find({ service: service._id }).session(
       session
     );
 
     for (const sub of subServices) {
-      await removeCloudinaryImages(sub.images);
+      await removeCloudinaryImage(sub.image);
     }
 
     await SubService.deleteMany({ service: service._id }).session(session);
@@ -539,30 +536,45 @@ export const permanentlyDeleteService = async (req: Request, res: Response) => {
 };
 
 /* -------------------------------- */
-/* REMOVE SERVICE IMAGES */
+/* REMOVE SERVICE IMAGE */
 /* -------------------------------- */
 
-export const removeServiceImages = async (req: Request, res: Response) => {
+export const removeServiceImage = async (req: Request, res: Response) => {
   try {
     const { serviceId } = req.params;
-    const { images } = req.body;
+    const { image } = req.body;
 
-    if (!Array.isArray(images) || !images.length)
-      return sendError(res, 400, "Images array required");
+    if (!image) {
+      return sendError(res, 400, "Image is required");
+    }
 
     const service = await Service.findOne({ serviceId });
-    if (!service) return sendError(res, 404, "Service not found");
 
-    await removeCloudinaryImages(images);
+    if (!service) {
+      return sendError(res, 404, "Service not found");
+    }
 
-    service.images = service.images.filter((img) => !images.includes(img));
+    /* Ensure the provided image matches stored image */
+
+    if (service.image !== image) {
+      return sendError(res, 400, "Image does not match service image");
+    }
+
+    /* Remove image from Cloudinary */
+
+    await removeCloudinaryImage(service.image);
+
+    /* Remove from DB */
+
+    service.image = "";
     await service.save();
 
-    return sendSuccess(res, 200, "Images removed successfully", {
-      images: service.images
+    return sendSuccess(res, 200, "Image removed successfully", {
+      image: service.image
     });
+
   } catch (error) {
     console.error(error);
-    return sendError(res, 500, "Failed to remove images");
+    return sendError(res, 500, "Failed to remove image");
   }
 };

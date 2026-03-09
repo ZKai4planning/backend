@@ -7,7 +7,7 @@ import {
   getServiceList,
   getAllServiceList,
   getServiceDetails,
-  removeServiceImages,
+  removeServiceImage,
   permanentlyDeleteService,
   softDeleteService,
   restoreService,
@@ -33,9 +33,9 @@ router.post(
     #swagger.parameters['serviceName'] = { in: 'formData', required: true, type: 'string' }
     #swagger.parameters['description'] = { in: 'formData', required: true, type: 'string' }
     #swagger.parameters['status'] = { in: 'formData', required: false, type: 'boolean' }
-    #swagger.parameters['images'] = { in: 'formData', required: false, type: 'array', items: { type: 'file' } }
+    #swagger.parameters['image'] = { in: 'formData', required: false, type: 'file'}
   */
-  upload.array("images"),
+  upload.single("image"),
   createServiceOrSubService
 );
 
@@ -57,9 +57,9 @@ router.put(
     #swagger.parameters['serviceName'] = { in: 'formData', required: false, type: 'string' }
     #swagger.parameters['description'] = { in: 'formData', required: false, type: 'string' }
     #swagger.parameters['status'] = { in: 'formData', required: false, type: 'boolean' }
-    #swagger.parameters['images'] = { in: 'formData', required: false, type: 'array', items: { type: 'file' } }
+    #swagger.parameters['image'] = { in: 'formData', required: false, type: 'file' }
   */
-  upload.array("images"),
+  upload.single("image"),
   updateService
 );
 
@@ -70,13 +70,13 @@ router.put(
  */
 
 /**
- * Remove service images
+ * Remove service image
  */
 router.delete(
-  "/:serviceId/images",
+  "/:serviceId/image",
   /*
     #swagger.tags = ["Services"]
-    #swagger.summary = "Remove images from a service"
+    #swagger.summary = "Remove image from a service"
 
     #swagger.parameters['serviceId'] = { in: 'path', required: true, type: 'string' }
 
@@ -84,13 +84,11 @@ router.delete(
       in: 'body',
       required: true,
       schema: {
-        images: [
-          "https://res.cloudinary.com/demo/image/upload/services/sample.jpg"
-        ]
+        image:"https://res.cloudinary.com/demo/image/upload/services/sample.jpg"
       }
     }
   */
-  removeServiceImages
+  removeServiceImage
 );
 
 /**

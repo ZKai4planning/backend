@@ -1491,13 +1491,10 @@
             "type": "boolean"
           },
           {
-            "name": "images",
+            "name": "image",
             "in": "formData",
             "required": false,
-            "type": "array",
-            "items": {
-              "type": "file"
-            }
+            "type": "file"
           }
         ],
         "responses": {
@@ -1570,13 +1567,10 @@
             "type": "boolean"
           },
           {
-            "name": "images",
+            "name": "image",
             "in": "formData",
             "required": false,
-            "type": "array",
-            "items": {
-              "type": "file"
-            }
+            "type": "file"
           }
         ],
         "responses": {
@@ -1613,12 +1607,12 @@
         }
       }
     },
-    "/services/{serviceId}/images": {
+    "/services/{serviceId}/image": {
       "delete": {
         "tags": [
           "Services"
         ],
-        "summary": "Remove images from a service",
+        "summary": "Remove image from a service",
         "description": "",
         "parameters": [
           {
@@ -1634,14 +1628,9 @@
             "schema": {
               "type": "object",
               "properties": {
-                "images": {
-                  "type": "array",
-                  "example": [
-                    "https://res.cloudinary.com/demo/image/upload/services/sample.jpg"
-                  ],
-                  "items": {
-                    "type": "string"
-                  }
+                "image": {
+                  "type": "string",
+                  "example": "https://res.cloudinary.com/demo/image/upload/services/sample.jpg"
                 }
               }
             }
@@ -1784,13 +1773,10 @@
             "type": "boolean"
           },
           {
-            "name": "images",
+            "name": "image",
             "in": "formData",
             "required": false,
-            "type": "array",
-            "items": {
-              "type": "file"
-            }
+            "type": "file"
           }
         ],
         "responses": {
@@ -1843,13 +1829,10 @@
             "type": "boolean"
           },
           {
-            "name": "images",
+            "name": "image",
             "in": "formData",
             "required": false,
-            "type": "array",
-            "items": {
-              "type": "file"
-            }
+            "type": "file"
           }
         ],
         "responses": {
@@ -1886,12 +1869,12 @@
         }
       }
     },
-    "/subservices/{subServiceId}/images": {
+    "/subservices/{subServiceId}/image": {
       "delete": {
         "tags": [
           "SubServices"
         ],
-        "summary": "Remove images from a SubService",
+        "summary": "Remove image from a SubService",
         "description": "",
         "parameters": [
           {
@@ -1907,14 +1890,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "images": {
-                  "type": "array",
-                  "example": [
+                "image": {
+                  "type": "file",
+                  "example": 
                     "https://res.cloudinary.com/demo/image/upload/subservices/sample.jpg"
-                  ],
-                  "items": {
-                    "type": "string"
-                  }
                 }
               }
             }

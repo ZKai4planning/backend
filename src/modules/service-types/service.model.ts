@@ -5,7 +5,7 @@ export interface IService extends Document {
   title: string;
   serviceName: string;
   description: string;
-  images: string[];
+  image: string;
   status: boolean;
   subServices: Types.ObjectId[];
 }
@@ -87,10 +87,11 @@ const serviceSchema = new Schema<IService>(
       description: "Detailed description of the service displayed on the service detail page"
     },
 
-    images: {
-      type: [String],
-      default: [],
-      description: "Array of image URLs representing the service"
+    image: {
+      type: String,
+      trim: true,
+      default: "",
+      description: "URL of the main image representing the service"
     },
 
     status: {
