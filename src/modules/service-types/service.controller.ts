@@ -7,20 +7,6 @@ import { Service } from "./service.model";
 import { SubService } from "./subservice.model";
 
 /* -------------------------------- */
-/* Response Helpers */
-/* -------------------------------- */
-
-const sendSuccess = (
-  res: Response,
-  statusCode: number,
-  message: string,
-  data?: unknown
-) => res.status(statusCode).json({ success: true, message, data });
-
-const sendError = (res: Response, statusCode: number, message: string) =>
-  res.status(statusCode).json({ success: false, message });
-
-/* -------------------------------- */
 /* Utils */
 /* -------------------------------- */
 
@@ -85,8 +71,8 @@ const removeCloudinaryImage = async (image: string) => {
 /* -------------------------------- */
 
 export const createServiceOrSubService = async (req: Request, res: Response) => {
-  const files = (req.files as Express.Multer.File[]) || 
-              (req.file ? [req.file] : []);
+  const files = (req.files as Express.Multer.File[]) ||
+    (req.file ? [req.file] : []);
 
   try {
     const { serviceId, status } = req.body;
@@ -95,13 +81,13 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
     const description = normalizeText(req.body.description);
 
     if (!title || !serviceName || !description) {
-      return sendError(res, 400, "Title, serviceName and description are required");
+      return res.status(400).json({ success: false, message: "Title, serviceName and description are required" });
     }
-    if (title.length < 3) return sendError(res, 400, "Title must be at least 3 characters");
+    if (title.length < 3) return res.status(400).json({ success: false, message: "Title must be at least 3 characters" });
     if (serviceName.length < 5)
-      return sendError(res, 400, "serviceName must be at least 5 characters");
+      return res.status(400).json({ success: false, message: "serviceName must be at least 5 characters" });
     if (description.length < 10)
-      return sendError(res, 400, "Description must be at least 10 characters");
+      return res.status(400).json({ success: false, message: "Description must be at least 10 characters" });
 
     /* -----------------------------
        CREATE SUBSERVICE
@@ -111,7 +97,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
       const parentService = await Service.findOne({ serviceId });
 
       if (!parentService) {
-        return sendError(res, 404, "Parent service not found");
+        return res.status(404).json({ success: false, message: "Parent service not found" });
       }
 
       /* Prevent duplicate subservice title under same service */
@@ -122,7 +108,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
       });
 
       if (existingSubService) {
-        return sendError(res, 409, "SubService with this title already exists for this service");
+        return res.status(409).json({ success: false, message: "SubService with this title already exists for this service" });
       }
 
       const imageUrl = await uploadImage(files, "subservices");
@@ -142,12 +128,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
       parentService.subServices.push(subService._id);
       await parentService.save();
 
-      return sendSuccess(
-        res,
-        201,
-        "SubService created successfully",
-        subService
-      );
+      return res.status(201).json({ success: true, message: "SubService created successfully" });
     }
 
     /* -----------------------------
@@ -159,7 +140,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
     const existingService = await Service.findOne({ title });
 
     if (existingService) {
-      return sendError(res, 409, "Service with this title already exists");
+      return res.status(409).json({ success: false, message: "Service with this title already exists" });
     }
 
     const imageUrl = await uploadImage(files, "services");
@@ -174,14 +155,14 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
       subServices: []
     });
 
-    return sendSuccess(res, 201, "Service created successfully", service);
+    return res.status(201).json({ success: true, message: "Service created successfully" });
 
   } catch (error: any) {
 
     /* Handle Mongo duplicate error fallback */
 
     if (error.code === 11000) {
-      return sendError(res, 409, "Duplicate title already exists");
+      return res.status(409).json({ success: false, message: "Duplicate title already exists" });
     }
     if (error?.name === "ValidationError") {
       return res.status(400).json({
@@ -192,7 +173,7 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
     }
 
     console.error(error);
-    return sendError(res, 500, "Failed to create resource");
+    return res.status(500).json({ success: false, message: "Failed to create resource" });
   } finally {
     await cleanupTempFiles(files);
   }
@@ -203,8 +184,8 @@ export const createServiceOrSubService = async (req: Request, res: Response) => 
 /* -------------------------------- */
 
 export const createService = async (req: Request, res: Response) => {
-  const files = (req.files as Express.Multer.File[]) || 
-              (req.file ? [req.file] : []);
+  const files = (req.files as Express.Multer.File[]) ||
+    (req.file ? [req.file] : []);
 
   try {
     const { status } = req.body;
@@ -213,20 +194,20 @@ export const createService = async (req: Request, res: Response) => {
     const description = normalizeText(req.body.description);
 
     if (!title || !serviceName || !description) {
-      return sendError(res, 400, "Title, serviceName and description are required");
+      return res.status(400).json({ success: false, message: "Title, serviceName and description are required" });
     }
-    if (title.length < 3) return sendError(res, 400, "Title must be at least 3 characters");
+    if (title.length < 3) return res.status(400).json({ success: false, message: "Title must be at least 3 characters" });
     if (serviceName.length < 5)
-      return sendError(res, 400, "serviceName must be at least 5 characters");
+      return res.status(400).json({ success: false, message: "serviceName must be at least 5 characters" });
     if (description.length < 10)
-      return sendError(res, 400, "Description must be at least 10 characters");
+      return res.status(400).json({ success: false, message: "Description must be at least 10 characters" });
 
     /* Check duplicate service title */
 
     const existingService = await Service.findOne({ title });
 
     if (existingService) {
-      return sendError(res, 409, "Service with this title already exists");
+      return res.status(409).json({ success: false, message: "Service with this title already exists" });
     }
 
     const imageUrl = await uploadImage(files, "services");
@@ -240,11 +221,12 @@ export const createService = async (req: Request, res: Response) => {
       status: toBool(status, true)
     });
 
-    return sendSuccess(res, 201, "Service created successfully", service);
+    return res.status(201).json({ success: true, message: "Service created successfully" });
+
   } catch (error: any) {
     /* Handle Mongo duplicate error fallback */
     if (error.code === 11000) {
-      return sendError(res, 409, "Duplicate title already exists");
+      return res.status(409).json({ success: false, message: "Duplicate title already exists" });
     }
     if (error?.name === "ValidationError") {
       return res.status(400).json({
@@ -254,7 +236,7 @@ export const createService = async (req: Request, res: Response) => {
       });
     }
     console.error(error);
-    return sendError(res, 500, "Failed to create service");
+    return res.status(500).json({ success: false, message: "Failed to create service" });
   } finally {
     await cleanupTempFiles(files);
   }
@@ -265,8 +247,8 @@ export const createService = async (req: Request, res: Response) => {
 /* -------------------------------- */
 
 export const updateService = async (req: Request, res: Response) => {
-  const files = (req.files as Express.Multer.File[]) || 
-              (req.file ? [req.file] : []);
+  const files = (req.files as Express.Multer.File[]) ||
+    (req.file ? [req.file] : []);
 
   try {
     const { serviceId } = req.params;
@@ -283,7 +265,7 @@ export const updateService = async (req: Request, res: Response) => {
         : undefined;
 
     const service = await Service.findOne({ serviceId });
-    if (!service) return sendError(res, 404, "Service not found");
+    if (!service) return res.status(404).json({ success: false, message: "Service not found" });
 
     const newImage = await uploadImage(files, "services");
 
@@ -293,19 +275,19 @@ export const updateService = async (req: Request, res: Response) => {
 
     if (title !== undefined) {
       if (!title || title.length < 3) {
-        return sendError(res, 400, "Title must be at least 3 characters");
+        return res.status(400).json({ success: false, message: "Title must be at least 3 characters" });
       }
       updatePayload.title = title;
     }
     if (serviceName !== undefined) {
       if (!serviceName || serviceName.length < 5) {
-        return sendError(res, 400, "serviceName must be at least 5 characters");
+        return res.status(400).json({ success: false, message: "serviceName must be at least 5 characters" });
       }
       updatePayload.serviceName = serviceName;
     }
     if (description !== undefined) {
       if (!description || description.length < 10) {
-        return sendError(res, 400, "Description must be at least 10 characters");
+        return res.status(400).json({ success: false, message: "Description must be at least 10 characters" });
       }
       updatePayload.description = description;
     }
@@ -318,7 +300,7 @@ export const updateService = async (req: Request, res: Response) => {
       { new: true, runValidators: true }
     );
 
-    return sendSuccess(res, 200, "Service updated successfully", updatedService);
+    return res.status(200).json({ success: true, message: "Service updated successfully" });
   } catch (error: any) {
     if (error?.name === "ValidationError") {
       return res.status(400).json({
@@ -328,7 +310,7 @@ export const updateService = async (req: Request, res: Response) => {
       });
     }
     console.error(error);
-    return sendError(res, 500, "Failed to update service");
+    return res.status(500).json({ success: false, message: "Failed to update service" });
   } finally {
     await cleanupTempFiles(files);
   }
@@ -379,15 +361,10 @@ export const getServiceList = async (req: Request, res: Response) => {
       }))
     }));
 
-    return sendSuccess(
-      res,
-      200,
-      "Services fetched successfully",
-      formattedServices
-    );
+    return res.status(200).json({ success: true, message: "Services fetched successfully", data: formattedServices });
   } catch (error) {
     console.error(error);
-    return sendError(res, 500, "Failed to fetch services");
+    return res.status(500).json({ success: false, message: "Failed to fetch services" });
   }
 };
 
@@ -412,10 +389,10 @@ export const getAllServiceList = async (req: Request, res: Response) => {
       status: service.status
     }));
 
-    return sendSuccess(res, 200, "Services fetched successfully", formattedServices);
+    return res.status(200).json({ success: true, message: "Services fetched successfully", data: formattedServices });
   } catch (error) {
     console.error(error);
-    return sendError(res, 500, "Failed to fetch services");
+    return res.status(500).json({ success: false, message: "Failed to fetch services" });
   }
 };
 
@@ -432,12 +409,12 @@ export const getServiceDetails = async (req: Request, res: Response) => {
       ...(includeDeleted ? {} : { status: true })
     }).populate("subServices");
 
-    if (!service) return sendError(res, 404, "Service not found");
+    if (!service) return res.status(404).json({ success: false, message: "Service not found" });
 
-    return sendSuccess(res, 200, "Service fetched successfully", service);
+    return res.status(200).json({ success: true, message: "Service fetched successfully", data: service });
   } catch (error) {
     console.error(error);
-    return sendError(res, 500, "Failed to fetch service");
+    return res.status(500).json({ success: false, message: "Failed to fetch service" });
   }
 };
 
@@ -450,7 +427,7 @@ export const softDeleteService = async (req: Request, res: Response) => {
     const { serviceId } = req.params;
 
     const service = await Service.findOne({ serviceId });
-    if (!service) return sendError(res, 404, "Service not found");
+    if (!service) return res.status(404).json({ success: false, message: "Service not found" });
 
     service.status = false;
 
@@ -461,10 +438,10 @@ export const softDeleteService = async (req: Request, res: Response) => {
       { status: false }
     );
 
-    return sendSuccess(res, 200, "Service soft deleted successfully");
+    return res.status(200).json({ success: true, message: "Service soft deleted successfully" });
   } catch (error) {
     console.error(error);
-    return sendError(res, 500, "Failed to delete service");
+    return res.status(500).json({ success: false, message: "Failed to delete service" });
   }
 };
 
@@ -477,7 +454,7 @@ export const restoreService = async (req: Request, res: Response) => {
     const { serviceId } = req.params;
 
     const service = await Service.findOne({ serviceId });
-    if (!service) return sendError(res, 404, "Deleted service not found");
+    if (!service) return res.status(404).json({ success: false, message: "Deleted service not found" });
 
     service.status = true;
 
@@ -488,10 +465,10 @@ export const restoreService = async (req: Request, res: Response) => {
       { status: true }
     );
 
-    return sendSuccess(res, 200, "Service restored successfully");
+    return res.status(200).json({ success: true, message: "Service restored successfully" });
   } catch (error) {
     console.error(error);
-    return sendError(res, 500, "Failed to restore service");
+    return res.status(500).json({ success: false, message: "Failed to restore service" });
   }
 };
 
@@ -508,7 +485,7 @@ export const permanentlyDeleteService = async (req: Request, res: Response) => {
     session.startTransaction();
 
     const service = await Service.findOne({ serviceId }).session(session);
-    if (!service) return sendError(res, 404, "Service not found");
+    if (!service) return res.status(404).json({ success: false, message: "Service not found" });
 
     await removeCloudinaryImage(service.image);
 
@@ -525,11 +502,11 @@ export const permanentlyDeleteService = async (req: Request, res: Response) => {
 
     await session.commitTransaction();
 
-    return sendSuccess(res, 200, "Service permanently deleted");
+    return res.status(200).json({ success: true, message: "Service permanently deleted" });
   } catch (error) {
     await session.abortTransaction();
     console.error(error);
-    return sendError(res, 500, "Failed to permanently delete service");
+    return res.status(500).json({ success: false, message: "Failed to permanently delete service" });
   } finally {
     session.endSession();
   }
@@ -545,19 +522,19 @@ export const removeServiceImage = async (req: Request, res: Response) => {
     const { image } = req.body;
 
     if (!image) {
-      return sendError(res, 400, "Image is required");
+      return res.status(400).json({ success: false, message: "Image is required" });
     }
 
     const service = await Service.findOne({ serviceId });
 
     if (!service) {
-      return sendError(res, 404, "Service not found");
+      return res.status(404).json({ success: false, message: "Service not found" });
     }
 
     /* Ensure the provided image matches stored image */
 
     if (service.image !== image) {
-      return sendError(res, 400, "Image does not match service image");
+      return res.status(400).json({ success: false, message: "Image does not match service image" });
     }
 
     /* Remove image from Cloudinary */
@@ -569,12 +546,10 @@ export const removeServiceImage = async (req: Request, res: Response) => {
     service.image = "";
     await service.save();
 
-    return sendSuccess(res, 200, "Image removed successfully", {
-      image: service.image
-    });
+    return res.status(200).json({ success: true, message: "Image removed successfully", data: { image: image } });
 
   } catch (error) {
     console.error(error);
-    return sendError(res, 500, "Failed to remove image");
+    return res.status(500).json({ success: false, message: "Failed to remove image" });
   }
 };

@@ -62,6 +62,7 @@ const userProfileSchema = new Schema<IUserProfile>(
 
     profilePicture: {
       type: String,
+      trim: true,
       description: "URL of the user's profile picture"
     },
 
@@ -128,6 +129,7 @@ const userProfileSchema = new Schema<IUserProfile>(
       doorNo: {
         type: String,
         trim: true,
+        set: normalizeWhitespace,
         maxlength: 20,
         description: "Building number or door number"
       },
@@ -135,6 +137,7 @@ const userProfileSchema = new Schema<IUserProfile>(
       street: {
         type: String,
         trim: true,
+        set: normalizeWhitespace,
         maxlength: 150,
         description: "Street name"
       },
@@ -142,6 +145,7 @@ const userProfileSchema = new Schema<IUserProfile>(
       locality: {
         type: String,
         trim: true,
+        set: normalizeWhitespace,
         maxlength: 150,
         description: "Area, district, or locality"
       },
@@ -149,6 +153,7 @@ const userProfileSchema = new Schema<IUserProfile>(
       city: {
         type: String,
         trim: true,
+        set: normalizeWhitespace,
         maxlength: 100,
         description: "City or town"
       },
@@ -156,6 +161,7 @@ const userProfileSchema = new Schema<IUserProfile>(
       state: {
         type: String,
         trim: true,
+        set: normalizeWhitespace,
         maxlength: 100,
         description: "State or county"
       },
@@ -163,6 +169,7 @@ const userProfileSchema = new Schema<IUserProfile>(
       country: {
         type: String,
         trim: true,
+        set: normalizeWhitespace,
         default: "India",
         maxlength: 100,
         description: "Country name"

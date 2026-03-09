@@ -104,7 +104,6 @@ export const requestOtp = async (req: Request, res: Response) => {
       await UserProfile.create({
         profileId,
         userRefId: user.userId,
-        fullName: typeof fullName === "string" ? fullName.trim() : "",
         bio: "",
         profilePicture: "",
       });

@@ -31,6 +31,7 @@ export const getProfileByUserId = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       success: true,
+      message: "Profile retrieved successfully",
       data: {
         userId: user.userId,
         profileId: profile.profileId,
@@ -225,7 +226,6 @@ export const updateProfileByUserId = async (req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       message: "Profile updated successfully",
-      data: profile
     });
 
   } catch (error) {
@@ -295,8 +295,7 @@ export const updateProfilePictureByUserId = async (
 
     return res.status(200).json({
       success: true,
-      message: "Profile picture updated successfully",
-      data: profile
+      message: "Profile picture updated successfully"
     });
 
   } catch (error) {
