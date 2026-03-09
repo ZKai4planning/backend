@@ -8,8 +8,13 @@ const COUNTRY_CODE_REGEX = /^\+[1-9]{1,4}$/;
 const POSTAL_REGEX = /^[A-Za-z0-9\s\-]{3,10}$/;
 const NO_HTML_REGEX = /<[^>]*>/;
 
-const normalizeWhitespace = (value: string) =>
-  value.replace(/\s+/g, " ").trim();
+const normalizeWhitespace = (value: unknown) => {
+  if (value === undefined || value === null) return value;
+  if (typeof value !== "string") return value;
+
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return normalized === "" ? undefined : normalized;
+};
 
 const userSchema = new mongoose.Schema(
   {
@@ -43,7 +48,8 @@ const userSchema = new mongoose.Schema(
       maxlength: [100, "Full name cannot exceed 100 characters"],
       match: [NAME_REGEX, "Full name contains invalid characters"],
       validate: {
-        validator: (value: string) => !NO_HTML_REGEX.test(value),
+        validator: (value: string | undefined) =>
+          value === undefined || !NO_HTML_REGEX.test(value),
         message: "Full name cannot contain HTML or script tags"
       },
       description: "Full name of the user displayed in the profile"

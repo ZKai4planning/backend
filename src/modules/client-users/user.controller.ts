@@ -305,7 +305,7 @@ export const updateUserStatusByUserId = async (
     }
  
     // 3️⃣ Update status
- 
+    user.isActive = isActive;
     await user.save();
  
     res.json({
@@ -314,7 +314,7 @@ export const updateUserStatusByUserId = async (
         userId: user.userId,
         email: user.email,
         phoneNumber: user.phoneNumber,
-       
+        isActive: user.isActive,
         status: user.isActive,
       },
     });
@@ -331,9 +331,9 @@ export const getUsersPaginated = async (req: Request, res: Response) => {
  
     const matchStage: any = {}
  
-    // isActive filter (status: 0 = active, 1 = inactive)
+    // Optional isActive filter: true/false
     if (req.query.isActive !== undefined) {
-      matchStage.status = req.query.isActive === "true" ? 0 : 1
+      matchStage.isActive = req.query.isActive === "true"
     }
  
     const users = await User.aggregate([
@@ -396,11 +396,11 @@ export const getUserCountAnalytics = async (
         $facet: {
           total: [{ $count: "count" }],
           active: [
-            { $match: { status: 0 } },
+            { $match: { isActive: true } },
             { $count: "count" },
           ],
           inactive: [
-            { $match: { status: 1 } },
+            { $match: { isActive: false } },
             { $count: "count" },
           ],
         },
