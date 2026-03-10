@@ -13,6 +13,30 @@ import { sendOtpEmail } from "../../services/email.service";
 import { MAX_OTP_ATTEMPTS, OTP_LOCK_DURATION_MS } from "../../constants/auth";
 import { isAccountLocked } from "../../utils/auth";
 
+const hasCompletedProfile = (profile: any) => {
+  if (!profile?.createdAt || !profile?.updatedAt) return false;
+  return (
+    new Date(profile.updatedAt).getTime() >
+    new Date(profile.createdAt).getTime()
+  );
+};
+
+const deriveFullNameFromEmail = (email: string) => {
+  const localPart = email.split("@")[0] || "";
+  const cleaned = localPart
+    .replace(/[._-]+/g, " ")
+    .replace(/[^A-Za-z\s'-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (cleaned.length < 2) return undefined;
+
+  return cleaned
+    .split(" ")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
 
 export const requestOtp = async (req: Request, res: Response) => {
   try {
@@ -72,6 +96,10 @@ export const requestOtp = async (req: Request, res: Response) => {
       const profileId = await generateId();
       const finalPhoneNumber =
         type === "phone" ? identifier : phoneNumber || undefined;
+      const providedFullName =
+        typeof fullName === "string" ? fullName.trim() : undefined;
+      const finalFullName =
+        providedFullName || (type === "email" ? deriveFullNameFromEmail(identifier) : undefined);
 
       if (finalPhoneNumber) {
         const existingPhone = await User.findOne({ phoneNumber: finalPhoneNumber });
@@ -85,7 +113,7 @@ export const requestOtp = async (req: Request, res: Response) => {
           userId,
           email: type === "email" ? identifier : undefined,
           phoneNumber: finalPhoneNumber,
-          fullName: typeof fullName === "string" ? fullName.trim() : undefined,
+          fullName: finalFullName,
         });
       } catch (createErr: any) {
         if (createErr?.code === 11000) {
@@ -190,7 +218,10 @@ export const verifyOtp = async (req: Request, res: Response) => {
       });
     }
 
-    const isFirstLogin = !user.lastLoginAt;
+    const profile = await UserProfile.findOne({ userRefId: user.userId })
+      .select("createdAt updatedAt")
+      .lean();
+    const nextStep = hasCompletedProfile(profile) ? "DASHBOARD" : "PROFILE";
 
     // ✅ OTP is valid → reset everything
     user.otp = null;
@@ -209,7 +240,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
     res.json({
       message: "Login successful",
       token,
-      nextStep: isFirstLogin ? "PROFILE" : "DASHBOARD",
+      nextStep,
     });
   } catch (err) {
     console.error(err);
