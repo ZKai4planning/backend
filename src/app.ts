@@ -6,8 +6,11 @@ import swaggerUi from "swagger-ui-express";
 import swaggerFile from "./swagger.json";
 import { requestLogger } from "./middlewares/requestLogger";
 import { errorHandler } from "./middlewares/errorHandler";
+import { keyManager } from "./security/keyManager";
 
 const app = express();
+keyManager.rotateKeysIfNeeded();
+
 
 const isProd = process.env.NODE_ENV === "production";
 

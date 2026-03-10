@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "clean": "rimraf dist",
-    "build:prod": "npm run clean && tsc"
+    "build:prod": "npm run clean && tsc",
+    "swagger": "ts-node src/swagger.ts"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +30,7 @@
     "sharp": "^0.34.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "uuid": "^13.0.0",
     "winston": "^3.19.0",
     "zod": "^4.3.6"
   },

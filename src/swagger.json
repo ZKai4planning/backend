@@ -2,25 +2,274 @@
   "swagger": "2.0",
   "info": {
     "title": "AI4Planning Service Platform API",
-    "description": "## AI4Planning API Documentation\n\nThis API provides endpoints for managing the AI4Planning Service Platform.\n\n### Core Modules\n- 🔐 Client Authentication\n- 👨‍💼 Admin Management\n- 🛠 Services & SubServices\n- 🧑‍🤝‍🧑 Role Management\n- 📍 Address Lookup\n\n### Base URL\n`http://localhost:5000/api/v1`\n\n### Authentication\nMost endpoints require **JWT Bearer Token**.",
+    "description": "## 🤖 AI4Planning API Documentation\n\nThis API provides endpoints for managing the **AI4Planning Service Platform**.\n\n### 🧩 Core Modules\n- 🔐 Client Authentication\n- 🛠️ Admin Management\n- 📦 Services & SubServices\n- 👥 Role Management\n- 📍 Address Lookup\n\n### 🚀 Project Stages\n- 📝 Planning & Requirement Analysis\n- 🏗️ Architecture & System Design\n- ⚙️ Backend API Development\n- 🔑 Authentication & Security Implementation\n- 🧪 Testing & Validation\n- 🚀 Deployment & Monitoring\n\n### 🌐 Base URL\n`http://localhost:5000/api/v1`\n\n### 🔐 Authentication\nMost endpoints require **JWT Bearer Token**.\n\n### 🛡️ Security Implementation\n- 🔑 **JWT RS256 Authentication**\n- 🆔 Token verification using **kid (Key ID)**\n- 🌍 **JWKS (JSON Web Key Set)** endpoint support\n- 🔄 **Automatic Key Generation & Rotation** for enhanced security\n\n### 📡 API Standards\n- 📦 RESTful API Design\n- 🧾 JSON Request/Response Format\n- ⚠️ Standardized Error Handling\n- 📚 Swagger/OpenAPI Documentation\n\n### 🛠️ Development Stack\n- 🟢 Node.js + Express\n- 🔷 TypeScript\n- 🍃 MongoDB + Mongoose\n- 📘 Swagger (OpenAPI 3)\n",
     "version": "1.0.0",
     "contact": {
       "name": "API Support",
       "email": "support@ai4planning.com"
     }
   },
-  "servers": [
-    {
-      "url": "http://localhost:5000/api/v1",
-      "description": "Local Development Server"
-    }
-  ],
   "host": "localhost:5000",
   "basePath": "/api/v1",
   "schemes": [
     "http"
   ],
+  "tags": [
+    {
+      "name": "Admin Configuration",
+      "description": "Endpoints for managing system-level configuration and application settings."
+    },
+    {
+      "name": "Roles",
+      "description": "APIs for creating, updating, and managing user roles and permissions within the system."
+    },
+    {
+      "name": "Client Auth",
+      "description": "Authentication endpoints for clients including login, registration, token management, and password operations."
+    },
+    {
+      "name": "Client Users",
+      "description": "APIs to manage client user accounts including creation, updates, listing, and deletion."
+    },
+    {
+      "name": "Client Profile",
+      "description": "Endpoints for retrieving and updating client profile information."
+    },
+    {
+      "name": "Admin Auth",
+      "description": "Authentication APIs for administrators including login, token refresh, and password management."
+    },
+    {
+      "name": "Admin Users",
+      "description": "Endpoints for managing administrator accounts including creation, updates, role assignments, and removal."
+    },
+    {
+      "name": "Admin Profile",
+      "description": "APIs to retrieve and update administrator profile details."
+    },
+    {
+      "name": "Employee Auth",
+      "description": "Authentication endpoints for employees including login, token handling, and password management."
+    },
+    {
+      "name": "Employee Users",
+      "description": "APIs for managing employee accounts including onboarding, updates, listing, and deletion."
+    },
+    {
+      "name": "Employee Profile",
+      "description": "Endpoints for accessing and updating employee profile information."
+    },
+    {
+      "name": "Address Lookup",
+      "description": "APIs for retrieving location and address-related data such as states, cities, or postal codes."
+    },
+    {
+      "name": "Services",
+      "description": "Endpoints for managing available services including creation, updates, listing, and deletion."
+    },
+    {
+      "name": "SubServices",
+      "description": "APIs for managing sub-services associated with primary services."
+    },
+    {
+      "name": "Service Analytics",
+      "description": "Endpoints for retrieving analytics, metrics, and reports related to services usage and performance."
+    },
+    {
+      "name": "Project Stages",
+      "description": "APIs for managing workflow stages and the initial stage in the project lifecycle."
+    },
+    {
+      "name": "JWKS",
+      "description": "Public JWKS endpoint used for JWT verification by external services."
+    }
+  ],
   "paths": {
+    "/configuration": {
+      "post": {
+        "tags": [
+          "Admin Configuration"
+        ],
+        "summary": "Create system configuration",
+        "description": "Creates initial configuration including default password and logo.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "defaultPassword",
+            "in": "formData",
+            "required": true,
+            "type": "string",
+            "description": "Default password (must follow password policy)"
+          },
+          {
+            "name": "logo",
+            "in": "formData",
+            "required": false,
+            "type": "file",
+            "description": "System logo image"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "autoBody": false
+      },
+      "get": {
+        "tags": [
+          "Admin Configuration"
+        ],
+        "summary": "Fetch system configuration",
+        "description": "Returns current configuration including logo URL.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin Configuration"
+        ],
+        "summary": "Update system configuration",
+        "description": "Update default password or system logo.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "defaultPassword",
+            "in": "formData",
+            "required": false,
+            "type": "string",
+            "description": "New default password (must follow password policy)"
+          },
+          {
+            "name": "logo",
+            "in": "formData",
+            "required": false,
+            "type": "file",
+            "description": "New system logo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "autoBody": false
+      }
+    },
+    "/roles": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "roleName": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Roles"
+        ]
+      },
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Roles"
+        ]
+      }
+    },
+    "/roles/{roleId}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "roleName": {
+                  "example": "any"
+                },
+                "status": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Roles"
+        ]
+      }
+    },
     "/auth/send-otp": {
       "post": {
         "description": "",
@@ -455,6 +704,121 @@
         ]
       }
     },
+    "/profile/{userId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Client Profile"
+        ]
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "fullName": {
+                  "example": "any"
+                },
+                "phoneNumber": {
+                  "example": "any"
+                },
+                "bio": {
+                  "example": "any"
+                },
+                "council": {
+                  "example": "any"
+                },
+                "phone": {
+                  "example": "any"
+                },
+                "landline": {
+                  "example": "any"
+                },
+                "address": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Client Profile"
+        ]
+      }
+    },
+    "/profile/{userId}/picture": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Client Profile"
+        ]
+      }
+    },
     "/admin/auth/login": {
       "post": {
         "description": "",
@@ -623,177 +987,6 @@
         },
         "tags": [
           "Admin Auth"
-        ]
-      }
-    },
-    "/employee/auth/login": {
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "example": "any"
-                },
-                "password": {
-                  "example": "any"
-                },
-                "region": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "423": {
-            "description": "Locked"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Employee Auth"
-        ]
-      }
-    },
-    "/employee/auth/verify-otp": {
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "example": "any"
-                },
-                "otp": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Employee Auth"
-        ]
-      }
-    },
-    "/employee/auth/resend-otp": {
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Employee Auth"
-        ]
-      }
-    },
-    "/employee/auth/reset-password": {
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "example": "any"
-                },
-                "newPassword": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Employee Auth"
         ]
       }
     },
@@ -977,6 +1170,323 @@
         ]
       }
     },
+    "/admin/profile/{userId}": {
+      "get": {
+        "tags": [
+          "Admin Profile"
+        ],
+        "summary": "Get admin profile by userId",
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin Profile"
+        ],
+        "summary": "Update admin profile",
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "John Doe"
+                },
+                "email": {
+                  "type": "string",
+                  "example": "john@example.com"
+                },
+                "phoneNumber": {
+                  "type": "string",
+                  "example": "+15551234567"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/admin/profile/{userId}/picture": {
+      "get": {
+        "tags": [
+          "Admin Profile"
+        ],
+        "summary": "Get admin profile picture by userId",
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin Profile"
+        ],
+        "summary": "Upload or update admin profile picture",
+        "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "profilePicture",
+            "in": "formData",
+            "required": true,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "autoBody": false
+      }
+    },
+    "/employee/auth/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                },
+                "region": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "423": {
+            "description": "Locked"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Employee Auth"
+        ]
+      }
+    },
+    "/employee/auth/verify-otp": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "otp": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Employee Auth"
+        ]
+      }
+    },
+    "/employee/auth/resend-otp": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Employee Auth"
+        ]
+      }
+    },
+    "/employee/auth/reset-password": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "newPassword": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Employee Auth"
+        ]
+      }
+    },
     "/employee/users/analytics": {
       "get": {
         "description": "",
@@ -1157,152 +1667,6 @@
         ]
       }
     },
-    "/admin/profile/{userId}": {
-      "get": {
-        "tags": [
-          "Admin Profile"
-        ],
-        "summary": "Get admin profile by userId",
-        "description": "",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Admin Profile"
-        ],
-        "summary": "Update admin profile",
-        "description": "",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "example": "John Doe"
-                },
-                "email": {
-                  "type": "string",
-                  "example": "john@example.com"
-                },
-                "phoneNumber": {
-                  "type": "string",
-                  "example": "+15551234567"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/admin/profile/{userId}/picture": {
-      "get": {
-        "tags": [
-          "Admin Profile"
-        ],
-        "summary": "Get admin profile picture by userId",
-        "description": "",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Admin Profile"
-        ],
-        "summary": "Upload or update admin profile picture",
-        "description": "",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "profilePicture",
-            "in": "formData",
-            "required": true,
-            "type": "file"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "autoBody": false
-      }
-    },
     "/employee/profile/{userId}": {
       "get": {
         "tags": [
@@ -1449,696 +1813,6 @@
         "autoBody": false
       }
     },
-    "/services": {
-      "post": {
-        "tags": [
-          "Services"
-        ],
-        "summary": "Create a new service",
-        "description": "",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "title",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "serviceName",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "status",
-            "in": "formData",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "image",
-            "in": "formData",
-            "required": false,
-            "type": "file"
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Bad Request"
-          }
-        },
-        "autoBody": false
-      },
-      "get": {
-        "tags": [
-          "Services"
-        ],
-        "summary": "Get active service list",
-        "description": "",
-        "parameters": [
-          {
-            "name": "includeDeleted",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/services/{serviceId}": {
-      "put": {
-        "tags": [
-          "Services"
-        ],
-        "summary": "Update service details",
-        "description": "",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "title",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "serviceName",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "status",
-            "in": "formData",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "image",
-            "in": "formData",
-            "required": false,
-            "type": "file"
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Bad Request"
-          }
-        },
-        "autoBody": false
-      },
-      "get": {
-        "tags": [
-          "Services"
-        ],
-        "summary": "Get service details",
-        "description": "",
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "includeDeleted",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/services/{serviceId}/image": {
-      "delete": {
-        "tags": [
-          "Services"
-        ],
-        "summary": "Remove image from a service",
-        "description": "",
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "image": {
-                  "type": "string",
-                  "example": "https://res.cloudinary.com/demo/image/upload/services/sample.jpg"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/services/all": {
-      "get": {
-        "tags": [
-          "Services"
-        ],
-        "summary": "Get all services",
-        "description": "",
-        "parameters": [
-          {
-            "name": "includeDeleted",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/services/{serviceId}/soft-delete": {
-      "patch": {
-        "tags": [
-          "Services"
-        ],
-        "summary": "Soft delete service",
-        "description": "",
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/services/{serviceId}/restore": {
-      "patch": {
-        "tags": [
-          "Services"
-        ],
-        "summary": "Restore soft deleted service",
-        "description": "",
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/services/{serviceId}/permanent": {
-      "delete": {
-        "tags": [
-          "Services"
-        ],
-        "summary": "Permanently delete service",
-        "description": "",
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/subservices": {
-      "post": {
-        "tags": [
-          "SubServices"
-        ],
-        "summary": "Create a new SubService",
-        "description": "",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "title",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "subServiceName",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "status",
-            "in": "formData",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "image",
-            "in": "formData",
-            "required": false,
-            "type": "file"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        },
-        "autoBody": false
-      }
-    },
-    "/subservices/{subServiceId}": {
-      "put": {
-        "tags": [
-          "SubServices"
-        ],
-        "summary": "Update SubService details",
-        "description": "",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "parameters": [
-          {
-            "name": "subServiceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "title",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "subServiceName",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "status",
-            "in": "formData",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "image",
-            "in": "formData",
-            "required": false,
-            "type": "file"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        },
-        "autoBody": false
-      },
-      "get": {
-        "tags": [
-          "SubServices"
-        ],
-        "summary": "Get SubService details",
-        "description": "",
-        "parameters": [
-          {
-            "name": "subServiceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "includeDeleted",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/subservices/{subServiceId}/image": {
-      "delete": {
-        "tags": [
-          "SubServices"
-        ],
-        "summary": "Remove image from a SubService",
-        "description": "",
-        "parameters": [
-          {
-            "name": "subServiceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "image": {
-                  "type": "file",
-                  "example": "https://res.cloudinary.com/demo/image/upload/subservices/sample.jpg"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/subservices/service/{serviceId}": {
-      "get": {
-        "tags": [
-          "SubServices"
-        ],
-        "summary": "Get SubServices by Service",
-        "description": "",
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "includeDeleted",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/subservices/{subServiceId}/soft-delete": {
-      "patch": {
-        "tags": [
-          "SubServices"
-        ],
-        "summary": "Soft delete SubService",
-        "description": "",
-        "parameters": [
-          {
-            "name": "subServiceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/subservices/{subServiceId}/restore": {
-      "patch": {
-        "tags": [
-          "SubServices"
-        ],
-        "summary": "Restore soft deleted SubService",
-        "description": "",
-        "parameters": [
-          {
-            "name": "subServiceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/subservices/{subServiceId}/permanent": {
-      "delete": {
-        "tags": [
-          "SubServices"
-        ],
-        "summary": "Permanently delete SubService",
-        "description": "",
-        "parameters": [
-          {
-            "name": "subServiceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/service-analytics/services": {
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Service Analytics"
-        ]
-      }
-    },
-    "/service-analytics/service-breakdown": {
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Service Analytics"
-        ]
-      }
-    },
-    "/service-analytics/top-services": {
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Service Analytics"
-        ]
-      }
-    },
-    "/roles": {
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "roleName": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Roles"
-        ]
-      },
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Roles"
-        ]
-      }
-    },
-    "/roles/{roleId}": {
-      "put": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "roleId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "roleName": {
-                  "example": "any"
-                },
-                "status": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "tags": [
-          "Roles"
-        ]
-      }
-    },
     "/address-lookup": {
       "post": {
         "description": "",
@@ -2256,135 +1930,207 @@
         ]
       }
     },
-    "/configuration": {
-  "post": {
-    "tags": ["Admin Configuration"],
-    "summary": "Create system configuration",
-    "description": "Creates the initial system configuration. This endpoint can only be used if configuration does not already exist.",
-    "consumes": ["multipart/form-data"],
-    "parameters": [
-      {
-        "name": "defaultPassword",
-        "in": "formData",
-        "required": true,
-        "type": "string",
-        "description": "Default password. Must contain minimum 8 characters, including uppercase, lowercase, digit, and special character.",
-        "example": "Admin@123"
-      },
-      {
-        "name": "logo",
-        "in": "formData",
-        "required": false,
-        "type": "file",
-        "description": "System logo image"
-      }
-    ],
-    "responses": {
-      "201": {
-        "description": "Configuration created successfully"
-      },
-      "400": {
-        "description": "Configuration already exists or password policy failed"
-      },
-      "500": {
-        "description": "Internal Server Error"
-      }
-    }
-  },
-
-  "get": {
-    "tags": ["Admin Configuration"],
-    "summary": "Get system configuration",
-    "description": "Fetches the current system configuration including logo URL.",
-    "responses": {
-      "200": {
-        "description": "Configuration fetched successfully"
-      },
-      "404": {
-        "description": "Configuration not found"
-      },
-      "500": {
-        "description": "Internal Server Error"
-      }
-    }
-  },
-
-  "put": {
-    "tags": ["Admin Configuration"],
-    "summary": "Update system configuration",
-    "description": "Updates system configuration such as default password or logo.",
-    "consumes": ["multipart/form-data"],
-    "parameters": [
-      {
-        "name": "defaultPassword",
-        "in": "formData",
-        "required": false,
-        "type": "string",
-        "description": "New default password. Must contain minimum 8 characters, including uppercase, lowercase, digit, and special character.",
-        "example": "Admin@123"
-      },
-      {
-        "name": "logo",
-        "in": "formData",
-        "required": false,
-        "type": "file",
-        "description": "New system logo image"
-      }
-    ],
-    "responses": {
-      "200": {
-        "description": "Configuration updated successfully"
-      },
-      "404": {
-        "description": "Configuration not found"
-      },
-      "500": {
-        "description": "Internal Server Error"
-      }
-    }
-  }
-},
-    "/profile/{userId}": {
-      "get": {
+    "/services": {
+      "post": {
         "tags": [
-          "Client Profile"
+          "Services"
         ],
-        "summary": "Get user profile by userId",
-        "description": "Fetch the profile details associated with a specific user ID.",
+        "summary": "Create a new service",
+        "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
-            "name": "userId",
-            "in": "path",
+            "name": "serviceId",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "in": "formData",
             "required": true,
-            "type": "string",
-            "description": "Unique identifier of the user"
+            "type": "string"
+          },
+          {
+            "name": "serviceName",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "formData",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "required": false,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "autoBody": false
+      },
+      "get": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Get active service list",
+        "description": "",
+        "parameters": [
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
           }
         ],
         "responses": {
           "200": {
-            "description": "Profile retrieved successfully"
-          },
-          "404": {
-            "description": "Profile not found"
+            "description": "OK"
           },
           "500": {
-            "description": "Internal server error"
+            "description": "Internal Server Error"
           }
         }
-      },
+      }
+    },
+    "/services/{serviceId}": {
       "put": {
         "tags": [
-          "Client Profile"
+          "Services"
         ],
-        "summary": "Update user profile",
-        "description": "Update profile information such as name, bio, phone numbers, council, and address.",
+        "summary": "Update service details",
+        "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
-            "name": "userId",
+            "name": "serviceId",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "Unique identifier of the user"
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "serviceName",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "formData",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "required": false,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "autoBody": false
+      },
+      "get": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Get service details",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/services/{serviceId}/image": {
+      "delete": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Remove image from a service",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
           },
           {
             "name": "body",
@@ -2393,80 +2139,9 @@
             "schema": {
               "type": "object",
               "properties": {
-                "fullName": {
+                "image": {
                   "type": "string",
-                  "example": "any"
-                },
-                "phoneNumber": {
-                  "type": "string",
-                  "example": "+44"
-                },
-                "bio": {
-                  "type": "string",
-                  "example": "any"
-                },
-                "council": {
-                  "type": "string",
-                  "example": "any"
-                },
-                "phone": {
-                  "type": "object",
-                  "properties": {
-                    "countryCode": {
-                      "type": "string",
-                      "example": "+44"
-                    },
-                    "number": {
-                      "type": "string",
-                      "example": "9100012345"
-                    }
-                  }
-                },
-                "landline": {
-                  "type": "object",
-                  "properties": {
-                    "countryCode": {
-                      "type": "string",
-                      "example": "+44"
-                    },
-                    "number": {
-                      "type": "string",
-                      "example": "4023456789"
-                    }
-                  }
-                },
-                "address": {
-                  "type": "object",
-                  "properties": {
-                    "doorNo": {
-                      "type": "string",
-                      "example": "12-3-45"
-                    },
-                    "street": {
-                      "type": "string",
-                      "example": "Street Road"
-                    },
-                    "locality": {
-                      "type": "string",
-                      "example": "Locality"
-                    },
-                    "city": {
-                      "type": "string",
-                      "example": "City"
-                    },
-                    "state": {
-                      "type": "string",
-                      "example": "State"
-                    },
-                    "country": {
-                      "type": "string",
-                      "example": "Country"
-                    },
-                    "postalCode": {
-                      "type": "string",
-                      "example": "500016"
-                    }
-                  }
+                  "example": "https://res.cloudinary.com/demo/image/upload/services/sample.jpg"
                 }
               }
             }
@@ -2474,123 +2149,773 @@
         ],
         "responses": {
           "200": {
-            "description": "Profile updated successfully"
+            "description": "OK"
           },
           "400": {
-            "description": "Invalid request data"
+            "description": "Bad Request"
           },
           "404": {
-            "description": "Profile not found"
+            "description": "Not Found"
           },
           "500": {
-            "description": "Internal server error"
+            "description": "Internal Server Error"
           }
         }
       }
     },
-    "/profile/{userId}/picture": {
-      "put": {
+    "/services/all": {
+      "get": {
         "tags": [
-          "Client Profile"
+          "Services"
         ],
-        "summary": "Upload or update profile picture",
-        "description": "Upload a profile picture for the specified user.",
+        "summary": "Get all services",
+        "description": "",
+        "parameters": [
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/services/{serviceId}/soft-delete": {
+      "patch": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Soft delete service",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/services/{serviceId}/restore": {
+      "patch": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Restore soft deleted service",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/services/{serviceId}/permanent": {
+      "delete": {
+        "tags": [
+          "Services"
+        ],
+        "summary": "Permanently delete service",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/subservices": {
+      "post": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Create a new SubService",
+        "description": "",
         "consumes": [
           "multipart/form-data"
         ],
         "parameters": [
           {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "description": "Unique identifier of the user"
-          },
-          {
-            "name": "profilePicture",
+            "name": "serviceId",
             "in": "formData",
             "required": true,
-            "type": "file",
-            "description": "Profile image file"
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subServiceName",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "formData",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "required": false,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "autoBody": false
+      }
+    },
+    "/subservices/{subServiceId}": {
+      "put": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Update SubService details",
+        "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "subServiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "subServiceName",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "formData",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "required": false,
+            "type": "file"
           }
         ],
         "responses": {
           "200": {
-            "description": "Profile picture updated successfully"
-          },
-          "400": {
-            "description": "Invalid file upload"
+            "description": "OK"
           },
           "404": {
-            "description": "Profile not found"
+            "description": "Not Found"
           },
           "500": {
-            "description": "Internal server error"
+            "description": "Internal Server Error"
+          }
+        },
+        "autoBody": false
+      },
+      "get": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Get SubService details",
+        "description": "",
+        "parameters": [
+          {
+            "name": "subServiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
+    },
+    "/subservices/{subServiceId}/image": {
+      "delete": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Remove image from a SubService",
+        "description": "",
+        "parameters": [
+          {
+            "name": "subServiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "image": {
+                  "type": "string",
+                  "example": "https://res.cloudinary.com/demo/image/upload/subservices/sample.jpg"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/subservices/service/{serviceId}": {
+      "get": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Get SubServices by Service",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/subservices/{subServiceId}/soft-delete": {
+      "patch": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Soft delete SubService",
+        "description": "",
+        "parameters": [
+          {
+            "name": "subServiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/subservices/{subServiceId}/restore": {
+      "patch": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Restore soft deleted SubService",
+        "description": "",
+        "parameters": [
+          {
+            "name": "subServiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/subservices/{subServiceId}/permanent": {
+      "delete": {
+        "tags": [
+          "SubServices"
+        ],
+        "summary": "Permanently delete SubService",
+        "description": "",
+        "parameters": [
+          {
+            "name": "subServiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/service-analytics/services": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Service Analytics"
+        ]
+      }
+    },
+    "/service-analytics/service-breakdown": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Service Analytics"
+        ]
+      }
+    },
+    "/service-analytics/top-services": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Service Analytics"
+        ]
+      }
+    },
+    "/project-stage": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "example": "any"
+                },
+                "route": {
+                  "example": "any"
+                },
+                "icon": {
+                  "example": "any"
+                },
+                "priority": {
+                  "example": "any"
+                },
+                "initialStage": {
+                  "example": "any"
+                },
+                "status": {
+                  "example": "any"
+                },
+                "legacyRoutes": {
+                  "example": "any"
+                },
+                "nextCard": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Project Stages"
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Project Stages"
+        ]
+      }
+    },
+    "/project-stage/{stageId}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "example": "any"
+                },
+                "route": {
+                  "example": "any"
+                },
+                "icon": {
+                  "example": "any"
+                },
+                "priority": {
+                  "example": "any"
+                },
+                "initialStage": {
+                  "example": "any"
+                },
+                "status": {
+                  "example": "any"
+                },
+                "legacyRoutes": {
+                  "example": "any"
+                },
+                "nextCard": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Project Stages"
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Project Stages"
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Project Stages"
+        ]
+      }
+    },
+    "/project-stage/initial": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Project Stages"
+        ]
+      }
+    },
+    "/project-stage/restore/{stageId}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Project Stages"
+        ]
+      }
+    },
+    "/project-stage/permanent/{stageId}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Project Stages"
+        ]
+      }
+    },
+    "/.well-known/jwks.json": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "JWKS"
+        ]
+      }
     }
-  },
-  "tags": [
-    {
-      "name": "Admin Configuration",
-      "description": "Endpoints for managing system-level configuration and application settings."
-    },
-    {
-      "name": "Roles",
-      "description": "APIs for creating, updating, and managing user roles and permissions within the system."
-    },
-    {
-      "name": "Client Auth",
-      "description": "Authentication endpoints for clients including login, registration, token management, and password operations."
-    },
-    {
-      "name": "Client Users",
-      "description": "APIs to manage client user accounts including creation, updates, listing, and deletion."
-    },
-    {
-      "name": "Client Profile",
-      "description": "Endpoints for retrieving and updating client profile information."
-    },
-    {
-      "name": "Admin Auth",
-      "description": "Authentication APIs for administrators including login, token refresh, and password management."
-    },
-    {
-      "name": "Admin Users",
-      "description": "Endpoints for managing administrator accounts including creation, updates, role assignments, and removal."
-    },
-    {
-      "name": "Admin Profile",
-      "description": "APIs to retrieve and update administrator profile details."
-    },
-    {
-      "name": "Employee Auth",
-      "description": "Authentication endpoints for employees including login, token handling, and password management."
-    },
-    {
-      "name": "Employee Users",
-      "description": "APIs for managing employee accounts including onboarding, updates, listing, and deletion."
-    },
-    {
-      "name": "Employee Profile",
-      "description": "Endpoints for accessing and updating employee profile information."
-    },
-    {
-      "name": "Address Lookup",
-      "description": "APIs for retrieving location and address-related data such as states, cities, or postal codes."
-    },
-    {
-      "name": "Services",
-      "description": "Endpoints for managing available services including creation, updates, listing, and deletion."
-    },
-    {
-      "name": "SubServices",
-      "description": "APIs for managing sub-services associated with primary services."
-    },
-    {
-      "name": "Service Analytics",
-      "description": "Endpoints for retrieving analytics, metrics, and reports related to services usage and performance."
-    }
-  ]
+  }
 }

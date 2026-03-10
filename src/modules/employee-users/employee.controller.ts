@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { Employee } from "./employee.model";
 import { Role } from "../role-permissions/role.model";
 import { generateId, generateOTP } from "../../utils/generators";
-import { generateToken } from "../../utils/jwt";
+import { generateToken }  from "../../security/jwtService";
 import { Configuration } from "../admin-configuration/config.model";
 import { sendOtpEmail } from "../../services/email.service";
 import { STATUS_CODES } from "http";

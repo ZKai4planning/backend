@@ -5,7 +5,7 @@ import { Configuration } from "../admin-configuration/config.model";
 import { generateOTP, generateId, getRemainingLockTime } from "../../utils/generators";
 
 import bcrypt from "bcryptjs";
-import { generateToken } from "../../utils/jwt";
+import { generateToken }  from "../../security/jwtService";
 import { STATUS_CODES } from "http";
 import { config, email } from "zod";
 import { Role } from "../role-permissions/role.model";

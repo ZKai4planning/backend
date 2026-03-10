@@ -8,7 +8,7 @@ import {
 import { User } from "./user.model";
 import { generateOTP, generateId } from "../../utils/generators";
 import { UserProfile } from "../client-user-profiles/userprofile.model";
-import { generateToken } from "../../utils/jwt";
+import { generateToken }  from "../../security/jwtService";
 import { sendOtpEmail } from "../../services/email.service";
 import { MAX_OTP_ATTEMPTS, OTP_LOCK_DURATION_MS } from "../../constants/auth";
 import { isAccountLocked } from "../../utils/auth";

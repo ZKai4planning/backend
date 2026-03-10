@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
+import { TITLE_REGEX, REPEATED_CHAR_REGEX, NO_HTML_REGEX, normalizeWhitespace } from "../../utils/regex.utils";
 
 export interface IService extends Document {
   serviceId: string;
@@ -9,15 +10,6 @@ export interface IService extends Document {
   status: boolean;
   subServices: Types.ObjectId[];
 }
-
-/* ---------- Regex Helpers ---------- */
-
-const TITLE_REGEX = /^[A-Za-z0-9 &_,()\-:.']+$/;
-const NO_HTML_REGEX = /<[^>]*>/;
-const REPEATED_CHAR_REGEX = /(.)\1{2,}/;
-
-const normalizeWhitespace = (value: string) =>
-  value.replace(/\s+/g, " ").trim();
 
 const serviceSchema = new Schema<IService>(
   {

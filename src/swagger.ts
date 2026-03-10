@@ -11,13 +11,143 @@ type RouteConfig = {
 const doc = {
   swagger: "2.0",
   info: {
-    title: "My API",
-    description: "API documentation",
+    title: "AI4Planning Service Platform API",
+    description:
+      "## 🤖 AI4Planning API Documentation\n\n" +
+      "This API provides endpoints for managing the **AI4Planning Service Platform**.\n\n" +
+
+      "### 🧩 Core Modules\n" +
+      "- 🔐 Client Authentication\n" +
+      "- 🛠️ Admin Management\n" +
+      "- 📦 Services & SubServices\n" +
+      "- 👥 Role Management\n" +
+      "- 📍 Address Lookup\n\n" +
+
+      "### 🚀 Project Stages\n" +
+      "- 📝 Planning & Requirement Analysis\n" +
+      "- 🏗️ Architecture & System Design\n" +
+      "- ⚙️ Backend API Development\n" +
+      "- 🔑 Authentication & Security Implementation\n" +
+      "- 🧪 Testing & Validation\n" +
+      "- 🚀 Deployment & Monitoring\n\n" +
+
+      "### 🌐 Base URL\n" +
+      "`http://localhost:5000/api/v1`\n\n" +
+
+      "### 🔐 Authentication\n" +
+      "Most endpoints require **JWT Bearer Token**.\n\n" +
+
+      "### 🛡️ Security Implementation\n" +
+      "- 🔑 **JWT RS256 Authentication**\n" +
+      "- 🆔 Token verification using **kid (Key ID)**\n" +
+      "- 🌍 **JWKS (JSON Web Key Set)** endpoint support\n" +
+      "- 🔄 **Automatic Key Generation & Rotation** for enhanced security\n\n" +
+
+      "### 📡 API Standards\n" +
+      "- 📦 RESTful API Design\n" +
+      "- 🧾 JSON Request/Response Format\n" +
+      "- ⚠️ Standardized Error Handling\n" +
+      "- 📚 Swagger/OpenAPI Documentation\n\n" +
+
+      "### 🛠️ Development Stack\n" +
+      "- 🟢 Node.js + Express\n" +
+      "- 🔷 TypeScript\n" +
+      "- 🍃 MongoDB + Mongoose\n" +
+      "- 📘 Swagger (OpenAPI 3)\n",
     version: "1.0.0",
+    contact: {
+      name: "API Support",
+      email: "support@ai4planning.com",
+    },
   },
   host: "localhost:5000",
   basePath: "/api/v1",
   schemes: ["http"],
+  tags: [
+    {
+      name: "Admin Configuration",
+      description:
+        "Endpoints for managing system-level configuration and application settings.",
+    },
+    {
+      name: "Roles",
+      description:
+        "APIs for creating, updating, and managing user roles and permissions within the system.",
+    },
+    {
+      name: "Client Auth",
+      description:
+        "Authentication endpoints for clients including login, registration, token management, and password operations.",
+    },
+    {
+      name: "Client Users",
+      description:
+        "APIs to manage client user accounts including creation, updates, listing, and deletion.",
+    },
+    {
+      name: "Client Profile",
+      description:
+        "Endpoints for retrieving and updating client profile information.",
+    },
+    {
+      name: "Admin Auth",
+      description:
+        "Authentication APIs for administrators including login, token refresh, and password management.",
+    },
+    {
+      name: "Admin Users",
+      description:
+        "Endpoints for managing administrator accounts including creation, updates, role assignments, and removal.",
+    },
+    {
+      name: "Admin Profile",
+      description: "APIs to retrieve and update administrator profile details.",
+    },
+    {
+      name: "Employee Auth",
+      description:
+        "Authentication endpoints for employees including login, token handling, and password management.",
+    },
+    {
+      name: "Employee Users",
+      description:
+        "APIs for managing employee accounts including onboarding, updates, listing, and deletion.",
+    },
+    {
+      name: "Employee Profile",
+      description: "Endpoints for accessing and updating employee profile information.",
+    },
+    {
+      name: "Address Lookup",
+      description:
+        "APIs for retrieving location and address-related data such as states, cities, or postal codes.",
+    },
+    {
+      name: "Services",
+      description:
+        "Endpoints for managing available services including creation, updates, listing, and deletion.",
+    },
+    {
+      name: "SubServices",
+      description:
+        "APIs for managing sub-services associated with primary services.",
+    },
+    {
+      name: "Service Analytics",
+      description:
+        "Endpoints for retrieving analytics, metrics, and reports related to services usage and performance.",
+    },
+    {
+      name: "Project Stages",
+      description:
+        "APIs for managing workflow stages and the initial stage in the project lifecycle.",
+    },
+    {
+      name: "JWKS",
+      description:
+        "Public JWKS endpoint used for JWT verification by external services.",
+    },
+  ],
 };
 
 const outputFile = "./src/swagger.json";
@@ -37,7 +167,9 @@ const routeConfigs: RouteConfig[] = [
   { file: "./src/routes/v1/address-lookup.routes.ts", prefix: "/address-lookup", tag: "Address Lookup" },
   { file: "./src/routes/v1/service.routes.ts", prefix: "/services", tag: "Services" },
   { file: "./src/routes/v1/subservices.routes.ts", prefix: "/subservices", tag: "SubServices" },
-  { file: "./src/routes/v1/service.analytics.routes.ts", prefix: "/service-analytics", tag: "Service Analytics" }
+  { file: "./src/routes/v1/service.analytics.routes.ts", prefix: "/service-analytics", tag: "Service Analytics" },
+  { file: "./src/routes/v1/projectStage.route.ts", prefix: "/project-stage", tag: "Project Stages" },
+  { file: "./src/routes/v1/jwks.route.ts", prefix: "/", tag: "JWKS" },
 ];
 
 const joinPath = (prefix: string, routePath: string) => {
@@ -55,7 +187,7 @@ const generate = async () => {
   const merged: any = {
     ...doc,
     paths: {},
-    tags: [],
+    tags: Array.isArray(doc.tags) ? [...doc.tags] : [],
   };
 
   for (let i = 0; i < routeConfigs.length; i += 1) {

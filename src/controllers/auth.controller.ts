@@ -6,7 +6,7 @@ import { log } from "../utils/log";
 import { generateId } from "../utils/generators";
 import { User } from "../modules/client-users/user.model";
 import { UserProfile } from "../modules/client-user-profiles/userprofile.model";
-import { generateToken } from "../utils/jwt";
+import { generateToken }  from "../security/jwtService";
 import {
   isValidEmail,
   isValidPhone,
