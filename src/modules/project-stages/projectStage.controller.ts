@@ -9,7 +9,15 @@ import { generateId } from "../../utils/generators";
 
 const toBool = (value: unknown, fallback: boolean) => {
   if (typeof value === "boolean") return value;
-  if (typeof value === "string") return value.toLowerCase() === "true";
+
+  if (typeof value === "number") return value === 1;
+
+  if (typeof value === "string") {
+    const v = value.toLowerCase().trim();
+    if (["true", "1", "yes"].includes(v)) return true;
+    if (["false", "0", "no"].includes(v)) return false;
+  }
+
   return fallback;
 };
 
