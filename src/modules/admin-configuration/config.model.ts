@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import mongoose, { Document, Model } from "mongoose";
 
 export interface IConfiguration extends Document {
@@ -42,10 +43,13 @@ configurationSchema.statics.getConfig = async function () {
   let config = await this.findOne();
 
   if (!config) {
+    const plainPassword = process.env.DEFAULT_PASSWORD as string;
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
     config = await this.create({
-      defaultPassword: "",
-      plainDefaultPassword: "Secure@2026",
-      logoUrl: "",
+      defaultPassword: hashedPassword,
+      plainDefaultPassword: plainPassword,
+      logoUrl: process.env.LOGO_URL,
     });
   }
 
