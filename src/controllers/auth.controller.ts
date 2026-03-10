@@ -225,10 +225,37 @@ export const verifyOtpHandler = async (req: Request, res: Response) => {
       });
     }
 
-    const profile = await UserProfile.findOne({ userRefId: user.userId })
+    let profile = await UserProfile.findOne({ userRefId: user.userId })
       .select("createdAt updatedAt")
       .lean();
-    const nextStep = hasCompletedProfile(profile) ? "DASHBOARD" : "PROFILE";
+
+    const profileWasMissing = !profile;
+
+    if (profileWasMissing) {
+      try {
+        await UserProfile.create({
+          profileId: await generateId(),
+          userRefId: user.userId,
+          bio: "",
+          profilePicture: "",
+        });
+      } catch (createErr: any) {
+        if (createErr?.code !== 11000) {
+          throw createErr;
+        }
+      }
+    }
+
+    const profileIsCompleted = hasCompletedProfile(profile);
+
+    if (!profileIsCompleted && (!user.fullName || !user.fullName.trim()) && user.email) {
+      const derivedName = deriveFullNameFromEmail(user.email);
+      if (derivedName) {
+        user.fullName = derivedName;
+      }
+    }
+
+    const nextStep = profileIsCompleted ? "DASHBOARD" : "PROFILE";
 
     // ✅ OTP is valid → reset everything
     user.otp = null;
