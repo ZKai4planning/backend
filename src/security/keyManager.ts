@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-import { v4 as uuidv4 } from "uuid";
 import { JWT_CONFIG } from "../config/jwt.config";
 
 interface KeyRegistry {
@@ -45,7 +44,7 @@ export class KeyManager {
   }
 
   private generateNewKeypair(): string {
-    const kid = uuidv4();
+    const kid = crypto.randomUUID();
 
     const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
