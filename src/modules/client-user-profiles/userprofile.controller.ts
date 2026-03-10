@@ -12,7 +12,7 @@ export const getProfileByUserId = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
 
-    const user = await User.findOne({ userId }).lean();
+    const user = await User.findOne({ userId });
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -20,7 +20,7 @@ export const getProfileByUserId = async (req: Request, res: Response) => {
       });
     }
 
-    const profile = await UserProfile.findOne({ userRefId: userId }).lean();
+    const profile = await UserProfile.findOne({ userRefId: userId });
 
     if (!profile) {
       return res.status(404).json({

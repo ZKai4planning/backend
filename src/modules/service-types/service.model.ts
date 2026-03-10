@@ -29,7 +29,7 @@ const serviceSchema = new Schema<IService>(
       maxlength: [100, "Title cannot exceed 100 characters"],
       match: [
         TITLE_REGEX,
-        "Title can only contain letters, numbers, spaces, &, -, _, :, () and commas"
+        "Title can only contain letters, spaces, and these characters: &, _, -, :, (), comma, period, apostrophe, and /"
       ],
       validate: [
         {
@@ -54,7 +54,7 @@ const serviceSchema = new Schema<IService>(
       maxlength: [150, "Service Name cannot exceed 150 characters"],
       match: [
         TITLE_REGEX,
-        "Service Name can only contain letters, numbers, spaces, &, -, _, :, () and commas"
+        "Service name can only contain letters, spaces, and these characters: &, _, -, :, (), comma, period, apostrophe, and /"
       ],
       validate: [
         {

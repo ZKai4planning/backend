@@ -19,6 +19,7 @@ const RoleSchema: Schema = new Schema<IRole>(
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
     status: {
       type: Number,

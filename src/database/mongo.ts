@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
 
+// import { mongooseEncryptionPlugin } from "../plugins/mongooseEncryption.plugin";
+
+// mongoose.plugin(mongooseEncryptionPlugin);
+
 const MONGO_URI = process.env.MONGO_URI || "";
 
 if (!MONGO_URI) {

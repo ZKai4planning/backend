@@ -51,7 +51,7 @@ const nextCardSchema = new Schema<INextCard>(
             set: normalizeWhitespace,
             minlength: [3, "Title must be at least 3 characters"],
             maxlength: [150, "Title cannot exceed 150 characters"],
-            match: [TITLE_REGEX, "Invalid characters in title"],
+            match: [TITLE_REGEX, "Title can only contain letters, spaces, and these characters: &, _, -, :, (), comma, period, apostrophe, and /"],
             validate: [
                 {
                     validator: (value: string) => !NO_HTML_REGEX.test(value),
@@ -136,7 +136,7 @@ const projectStageSchema = new Schema<IProjectStage>(
             set: normalizeWhitespace,
             minlength: [2, "Label must be at least 2 characters"],
             maxlength: [120, "Label cannot exceed 120 characters"],
-            match: [TITLE_REGEX, "Invalid characters in label"],
+            match: [TITLE_REGEX, "Label can only contain letters, spaces, and these characters: &, _, -, :, (), comma, period, apostrophe, and /"],
             validate: {
                 validator: (value: string) => !NO_HTML_REGEX.test(value),
                 message: "HTML tags are not allowed in label",

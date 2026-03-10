@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { normalizeWhitespace, COUNTRY_CODE_REGEX, PHONE_REGEX, POSTAL_REGEX } from "../../utils/regex.utils";
 
 export interface IUserProfile extends Document {
   profileId: string;
@@ -29,16 +30,6 @@ export interface IUserProfile extends Document {
   };
 }
 
-/* ---------- Regex Helpers ---------- */
-
-const NAME_REGEX = /^[A-Za-z\s.'-]+$/;
-const PHONE_REGEX = /^[0-9]{6,15}$/;
-const COUNTRY_CODE_REGEX = /^\+[1-9]{1,4}$/;
-const POSTAL_REGEX = /^[A-Za-z0-9\s\-]{3,10}$/;
-const NO_HTML_REGEX = /<[^>]*>/;
-
-const normalizeWhitespace = (value: string) =>
-  value.replace(/\s+/g, " ").trim();
 
 /* ---------- User Profile Schema ---------- */
 

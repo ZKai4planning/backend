@@ -1,20 +1,5 @@
 import mongoose, { InferSchemaType } from "mongoose";
-
-/* ---------- Regex Helpers ---------- */
-
-const NAME_REGEX = /^[A-Za-z\s.'-]+$/;
-const PHONE_REGEX = /^[0-9]{6,15}$/;
-const COUNTRY_CODE_REGEX = /^\+[1-9]{1,4}$/;
-const POSTAL_REGEX = /^[A-Za-z0-9\s\-]{3,10}$/;
-const NO_HTML_REGEX = /<[^>]*>/;
-
-const normalizeWhitespace = (value: unknown) => {
-  if (value === undefined || value === null) return value;
-  if (typeof value !== "string") return value;
-
-  const normalized = value.replace(/\s+/g, " ").trim();
-  return normalized === "" ? undefined : normalized;
-};
+import { NAME_REGEX, NO_HTML_REGEX, normalizeWhitespace } from "../../utils/regex.utils";
 
 const userSchema = new mongoose.Schema(
   {
