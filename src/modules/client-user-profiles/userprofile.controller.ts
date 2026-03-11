@@ -42,7 +42,6 @@ export const getProfileByUserId = async (req: Request, res: Response) => {
         landline: profile.landline,
         council: profile.council,
         profilePicture: profile.profilePicture,
-        bio: profile.bio,
         address: profile.address,
         lastLoginAt: user.lastLoginAt,
         isActive: user.isActive
@@ -70,7 +69,6 @@ export const updateProfileByUserId = async (req: Request, res: Response) => {
     const {
       fullName,
       phoneNumber,
-      bio,
       council,
       phone,
       landline,
@@ -86,7 +84,7 @@ export const updateProfileByUserId = async (req: Request, res: Response) => {
       if (typeof fullName !== "string") {
         return res.status(400).json({
           success: false,
-          message: "fullName must be a string"
+          message: "Name is required."
         });
       }
       userUpdateFields.fullName = fullName.trim();
@@ -96,27 +94,17 @@ export const updateProfileByUserId = async (req: Request, res: Response) => {
       if (typeof phoneNumber !== "string") {
         return res.status(400).json({
           success: false,
-          message: "phoneNumber must be a string"
+          message: "Phone number must be a string"
         });
       }
       userUpdateFields.phoneNumber = phoneNumber.trim();
-    }
-
-    if (bio !== undefined) {
-      if (typeof bio !== "string") {
-        return res.status(400).json({
-          success: false,
-          message: "bio must be a string"
-        });
-      }
-      updateFields.bio = bio.trim();
     }
 
     if (council !== undefined) {
       if (typeof council !== "string") {
         return res.status(400).json({
           success: false,
-          message: "council must be a string"
+          message: "Council must be a string"
         });
       }
       updateFields.council = council.trim();
@@ -124,23 +112,28 @@ export const updateProfileByUserId = async (req: Request, res: Response) => {
 
     /* ---------- Phone ---------- */
 
-    if (phone) {
-      if (
-        typeof phone !== "object" ||
-        typeof phone.countryCode !== "string" ||
-        typeof phone.number !== "string"
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid phone structure"
-        });
-      }
-
-      updateFields.phone = {
-        countryCode: phone.countryCode.trim(),
-        number: phone.number.trim()
-      };
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required"
+      });
     }
+
+    if (
+      typeof phone !== "object" ||
+      typeof phone.countryCode !== "string" ||
+      typeof phone.number !== "string"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid phone structure"
+      });
+    }
+
+    updateFields.phone = {
+      countryCode: phone.countryCode.trim(),
+      number: phone.number.trim()
+    };
 
     /* ---------- Landline ---------- */
 
@@ -213,15 +206,8 @@ export const updateProfileByUserId = async (req: Request, res: Response) => {
     const profile = await UserProfile.findOneAndUpdate(
       { userRefId: userId },
       { $set: updateFields },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true, upsert: true } // Added upsert for safety
     );
-
-    if (!profile) {
-      return res.status(404).json({
-        success: false,
-        message: "Profile not found"
-      });
-    }
 
     return res.status(200).json({
       success: true,
@@ -295,7 +281,8 @@ export const updateProfilePictureByUserId = async (
 
     return res.status(200).json({
       success: true,
-      message: "Profile picture updated successfully"
+      message: "Profile picture updated successfully",
+      data: {"profilePicture": profile.profilePicture}
     });
 
   } catch (error) {

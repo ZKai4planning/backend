@@ -751,9 +751,6 @@
                 "phoneNumber": {
                   "example": "any"
                 },
-                "bio": {
-                  "example": "any"
-                },
                 "council": {
                   "example": "any"
                 },
@@ -791,13 +788,26 @@
     },
     "/profile/{userId}/picture": {
       "put": {
+        "tags": [
+          "Client Profile"
+        ],
+        "summary": "Upload or update profile picture",
         "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
             "name": "userId",
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "profilePicture",
+            "in": "formData",
+            "required": true,
+            "type": "file"
           }
         ],
         "responses": {
@@ -814,9 +824,7 @@
             "description": "Internal Server Error"
           }
         },
-        "tags": [
-          "Client Profile"
-        ]
+        "autoBody": false
       }
     },
     "/admin/auth/login": {

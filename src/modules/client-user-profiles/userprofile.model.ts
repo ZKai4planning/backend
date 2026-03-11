@@ -5,7 +5,7 @@ export interface IUserProfile extends Document {
   profileId: string;
   userRefId: string;
 
-  phone?: {
+  phone: {
     countryCode: string;
     number: string;
   };
@@ -17,7 +17,6 @@ export interface IUserProfile extends Document {
 
   council?: string;
   profilePicture?: string;
-  bio?: string;
 
   address?: {
     doorNo?: string;
@@ -55,13 +54,6 @@ const userProfileSchema = new Schema<IUserProfile>(
       type: String,
       trim: true,
       description: "URL of the user's profile picture"
-    },
-
-    bio: {
-      type: String,
-      trim: true,
-      maxlength: [500, "Bio cannot exceed 500 characters"],
-      description: "Short biography or description about the user"
     },
 
     council: {

@@ -18,7 +18,7 @@ const router = Router();
 
 /**
  * @swagger
- * /profiles/{userId}:
+ * /profile/{userId}:
  *   get:
  *     summary: Get user profile by userId
  *     tags: [UserProfile]
@@ -40,7 +40,7 @@ router.get("/:userId", getProfileByUserId);
 
 /**
  * @swagger
- * /profiles/{userId}:
+ * /profile/{userId}:
  *   put:
  *     summary: Update user profile
  *     tags: [UserProfile]
@@ -64,9 +64,6 @@ router.get("/:userId", getProfileByUserId);
  *               phoneNumber:
  *                type: string
  *                example: +449876543210
- *               bio:
- *                 type: string
- *                 example: Backend developer
  *               council:
  *                 type: string
  *                 example: Hyderabad Municipal Council
@@ -125,27 +122,22 @@ router.put("/:userId", updateProfileByUserId);
 
 /**
  * @swagger
- * /profiles/{userId}/picture:
+ * /profile/{userId}/picture:
  *   put:
  *     summary: Upload or update profile picture
  *     tags: [UserProfile]
+ *     consumes:
+ *       - multipart/form-data
  *     parameters:
- *       - in: path
- *         name: userId
+ *       - name: userId
+ *         in: path
  *         required: true
- *         schema:
- *           type: string
- *         description: Unique user identifier
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               profilePicture:
- *                 type: string
- *                 format: binary
+ *         type: string
+ *       - name: profilePicture
+ *         in: formData
+ *         type: file
+ *         required: true
+ *         description: Profile picture file
  *     responses:
  *       200:
  *         description: Profile picture updated successfully
@@ -156,6 +148,24 @@ router.put("/:userId", updateProfileByUserId);
  */
 router.put(
   "/:userId/picture",
+  /*
+    #swagger.tags = ["Client Profile"]
+    #swagger.summary = "Upload or update profile picture"
+    #swagger.autoBody = false
+    #swagger.consumes = ["multipart/form-data"]
+
+    #swagger.parameters['userId'] = {
+      in: 'path',
+      required: true,
+      type: 'string'
+    }
+
+    #swagger.parameters['profilePicture'] = {
+      in: 'formData',
+      required: true,
+      type: 'file'
+    }
+  */
   upload.single("profilePicture"),
   updateProfilePictureByUserId
 );
