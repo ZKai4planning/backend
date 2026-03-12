@@ -132,7 +132,6 @@ export const requestOtp = async (req: Request, res: Response) => {
       await UserProfile.create({
         profileId,
         userRefId: user.userId,
-        bio: "",
         profilePicture: "",
       });
     }
@@ -229,7 +228,6 @@ export const verifyOtp = async (req: Request, res: Response) => {
         await UserProfile.create({
           profileId: await generateId(),
           userRefId: user.userId,
-          bio: "",
           profilePicture: "",
         });
       } catch (createErr: any) {
