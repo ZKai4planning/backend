@@ -294,3 +294,155 @@ export const updateProfilePictureByUserId = async (
     });
   }
 };
+
+/* ------------------------------------------------ */
+/* User Profile Status Percentage */
+/* ------------------------------------------------ */
+export const getUserProfileStatusByUserId = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const userId = String(req.params.userId);
+
+    const user = await User.findOne({ userId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    let profile = await UserProfile.findOne({ userRefId: userId });
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Profile not found",
+      });
+    }
+
+    // ✅ Weighted calculation
+    let completion = 0;
+    let completedFields = 0;
+    const totalFields = 13;
+
+    const status = {
+      fullName: false,
+      phoneNumber: false,
+      phone: false,
+      council: false,
+      landline: false,
+      profilePicture: false,
+      address: {
+        doorNo: false,
+        street: false,
+        locality: false,
+        city: false,
+        state: false,
+        country: false,
+        postalCode: false,
+      },
+    };
+
+    // ---------- User fields ----------
+    if (user.fullName) {
+      completion += 10;
+      completedFields++;
+      status.fullName = true;
+    }
+
+    if (user.phoneNumber) {
+      completion += 10;
+      completedFields++;
+      status.phoneNumber = true;
+    }
+
+    // ---------- Profile fields ----------
+    if (profile.phone?.countryCode && profile.phone?.number) {
+      completion += 15;
+      completedFields++;
+      status.phone = true;
+    }
+
+    if (profile.council) {
+      completion += 10;
+      completedFields++;
+      status.council = true;
+    }
+
+    if (profile.landline?.number) {
+      completion += 5;
+      completedFields++;
+      status.landline = true;
+    }
+
+    if (profile.profilePicture) {
+      completion += 10;
+      completedFields++;
+      status.profilePicture = true;
+    }
+
+    // ---------- Address ----------
+    const addr = profile.address;
+
+    if (addr?.doorNo) {
+      completion += 5;
+      completedFields++;
+      status.address.doorNo = true;
+    }
+
+    if (addr?.street) {
+      completion += 5;
+      completedFields++;
+      status.address.street = true;
+    }
+
+    if (addr?.locality) {
+      completion += 5;
+      completedFields++;
+      status.address.locality = true;
+    }
+
+    if (addr?.city) {
+      completion += 10;
+      completedFields++;
+      status.address.city = true;
+    }
+
+    if (addr?.state) {
+      completion += 5;
+      completedFields++;
+      status.address.state = true;
+    }
+
+    if (addr?.country) {
+      completion += 5;
+      completedFields++;
+      status.address.country = true;
+    }
+
+    if (addr?.postalCode) {
+      completion += 5;
+      completedFields++;
+      status.address.postalCode = true;
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        userId,
+        completionPercentage: completion,
+        completedFields,
+        totalFields,
+        status,
+      },
+    });
+  } catch (error) {
+    console.error("User Profile Status Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};

@@ -12,6 +12,7 @@ import loginroutes from "./adminauth.routes";
 import employeeAuthRoutes from "./employeeauth.routes";
 import employeeUserRoutes from "./employeeuser.routes";
 import employeeProfileRoutes from "./employeeprofile.routes";
+import passwordRequestRoutes from "./passwordRequest.routes"
 import projectStageRoutes from "./projectStage.route";
 import jwksRoutes from "./jwks.route";
 
@@ -41,6 +42,7 @@ router.use("/admin/users", adminUserRoutes);
 router.use("/admin/auth", loginroutes);
 router.use("/employee/auth", employeeAuthRoutes);
 router.use("/employee/users", employeeUserRoutes);
+router.use("/admin/password-requests", passwordRequestRoutes);
 router.use("/project-stage", projectStageRoutes);
 router.use("/", jwksRoutes);
 

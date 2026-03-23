@@ -70,7 +70,7 @@ const adminUserSchema = new mongoose.Schema<IAdminUser>(
     password: {
       type: String,
       required: true,
-      select: false, // 🔒 never return password
+      select: false, // never return password
     },
 
     oldPassword: {

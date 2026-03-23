@@ -78,3 +78,192 @@ export const sendOtpEmail = async (
     throw new Error("Failed to send OTP email");
   }
 };
+
+
+// export const sendPasswordRequestNotificationToAdmins = async (
+//   adminEmails: string[],
+//   employeeEmail: string
+// ): Promise<BrevoSendEmailResponse> => {
+//   logger.info(`Sending password request notification for ${employeeEmail}`);
+
+//   const payload: BrevoSendEmailPayload = {
+//     to: adminEmails.map((email) => ({ email })),
+//     templateId: 2,
+//     params: {
+//       employeeEmail,
+//     },
+//     sender: {
+//       email: "info@ai4planning.com",
+//       name: "Ai4Planning",
+//     },
+//   };
+
+//   try {
+//     const { data } = await brevoClient.post("/smtp/email", payload);
+
+//     logger.info("Admin notification email sent");
+//     return data;
+//   } catch (error: any) {
+//     logger.error("Admin notification email failed", error);
+//     throw new Error("Failed to send admin notification email");
+//   }
+// };
+
+// export const sendNewPasswordEmail = async (
+//   email: string,
+//   newPassword: string
+// ): Promise<BrevoSendEmailResponse> => {
+//   logger.info(`Sending new password email to ${email}`);
+
+//   const payload: BrevoSendEmailPayload = {
+//     to: [{ email }],
+//     templateId: 3,
+//     params: {
+//       password: newPassword,
+//     },
+//     sender: {
+//       email: "info@ai4planning.com",
+//       name: "Ai4Planning",
+//     },
+//   };
+
+//   try {
+//     const { data } = await brevoClient.post("/smtp/email", payload);
+
+//     logger.info(`New password email sent to ${email}`);
+//     return data;
+//   } catch (error: any) {
+//     logger.error("New password email failed", error);
+//     throw new Error("Failed to send new password email");
+//   }
+// };
+
+// export const sendPasswordRequestRejectedEmail = async (
+//   email: string,
+//   reason?: string
+// ): Promise<BrevoSendEmailResponse> => {
+//   logger.info(`Sending rejection email to ${email}`);
+
+//   const payload: BrevoSendEmailPayload = {
+//     to: [{ email }],
+//     templateId: 4,
+//     params: {
+//       reason: reason || "No reason provided",
+//     },
+//     sender: {
+//       email: "info@ai4planning.com",
+//       name: "Ai4Planning",
+//     },
+//   };
+
+//   try {
+//     const { data } = await brevoClient.post("/smtp/email", payload);
+
+//     logger.info(`Rejection email sent to ${email}`);
+//     return data;
+//   } catch (error: any) {
+//     logger.error("Rejection email failed", error);
+//     throw new Error("Failed to send rejection email");
+//   }
+// };
+
+
+export const sendPasswordRequestNotificationToAdmins = async (
+  adminEmails: string[],
+  employeeEmail: string
+): Promise<BrevoSendEmailResponse> => {
+  logger.info(`Sending password request notification for ${employeeEmail}`);
+
+  const payload = {
+    to: adminEmails.map((email) => ({ email })),
+    subject: "Employee Password Reset Request",
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif;">
+        <h2>Password Reset Request</h2>
+        <p>An employee has requested a password reset.</p>
+        <p><strong>Employee Email:</strong> ${employeeEmail}</p>
+        <p>Please login to the admin panel to review.</p>
+      </div>
+    `,
+    sender: {
+      email: "info@ai4planning.com",
+      name: "Ai4Planning",
+    },
+  };
+
+  try {
+    const { data } = await brevoClient.post("/smtp/email", payload);
+    logger.info("Admin notification email sent");
+    return data;
+  } catch (error: any) {
+    logger.error("Admin notification email failed", error);
+    throw new Error("Failed to send admin notification email");
+  }
+};
+
+export const sendNewPasswordEmail = async (
+  email: string,
+  newPassword: string
+): Promise<BrevoSendEmailResponse> => {
+  logger.info(`Sending new password email to ${email}`);
+
+  const payload = {
+    to: [{ email }],
+    subject: "Your New Temporary Password",
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif;">
+        <h2>Password Reset</h2>
+        <p>Your password has been reset by the admin.</p>
+        <p><strong>Temporary Password:</strong></p>
+        <h1 style="color: #4CAF50;">${newPassword}</h1>
+        <p>This password is temporary. Please login and change it immediately.</p>
+      </div>
+    `,
+    sender: {
+      email: "info@ai4planning.com",
+      name: "Ai4Planning",
+    },
+  };
+
+  try {
+    const { data } = await brevoClient.post("/smtp/email", payload);
+    logger.info(`New password email sent to ${email}`);
+    return data;
+  } catch (error: any) {
+    logger.error("New password email failed", error);
+    throw new Error("Failed to send new password email");
+  }
+};
+
+export const sendPasswordRequestRejectedEmail = async (
+  email: string,
+  reason?: string
+): Promise<BrevoSendEmailResponse> => {
+  logger.info(`Sending rejection email to ${email}`);
+
+  const payload = {
+    to: [{ email }],
+    subject: "Password Reset Request Rejected",
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif;">
+        <h2>Request Rejected</h2>
+        <p>Your password reset request has been rejected.</p>
+        <p><strong>Reason:</strong> ${reason || "No reason provided"}</p>
+        <p>If this is unexpected, please contact your administrator.</p>
+      </div>
+    `,
+    sender: {
+      email: "info@ai4planning.com",
+      name: "Ai4Planning",
+    },
+  };
+
+  try {
+    const { data } = await brevoClient.post("/smtp/email", payload);
+    logger.info(`Rejection email sent to ${email}`);
+    return data;
+  } catch (error: any) {
+    logger.error("Rejection email failed", error);
+    throw new Error("Failed to send rejection email");
+  }
+};

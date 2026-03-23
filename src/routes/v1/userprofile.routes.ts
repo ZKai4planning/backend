@@ -3,6 +3,7 @@ import upload from "../../middlewares/multer";
 
 import {
   getProfileByUserId,
+  getUserProfileStatusByUserId,
   updateProfileByUserId,
   updateProfilePictureByUserId
 } from "../../modules/client-user-profiles/userprofile.controller";
@@ -168,6 +169,21 @@ router.put(
   */
   upload.single("profilePicture"),
   updateProfilePictureByUserId
+);
+
+router.get(
+  "/:userId/status",
+  /*
+    #swagger.tags = ["UserProfile"]
+    #swagger.summary = "Get user profile completion status"
+
+    #swagger.parameters['userId'] = {
+      in: 'path',
+      required: true,
+      type: 'string'
+    }
+  */
+  getUserProfileStatusByUserId
 );
 
 export default router;

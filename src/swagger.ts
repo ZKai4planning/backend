@@ -109,6 +109,10 @@ const doc = {
         "Authentication endpoints for employees including login, token handling, and password management.",
     },
     {
+      name: "Employee Password Request",
+      description: "APIs for employee password request."
+    },
+    {
       name: "Employee Users",
       description:
         "APIs for managing employee accounts including onboarding, updates, listing, and deletion.",
@@ -162,6 +166,7 @@ const routeConfigs: RouteConfig[] = [
   { file: "./src/routes/v1/adminuser.routes.ts", prefix: "/admin/users", tag: "Admin Users" },
   { file: "./src/routes/v1/adminprofile.routes.ts", prefix: "/admin/profile", tag: "Admin Profile" },
   { file: "./src/routes/v1/employeeauth.routes.ts", prefix: "/employee/auth", tag: "Employee Auth" },
+  { file: "./src/routes/v1/passwordRequest.routes.ts", prefix: "/admin/password-requests", tag: "Employee Password Request"},
   { file: "./src/routes/v1/employeeuser.routes.ts", prefix: "/employee/users", tag: "Employee Users" },
   { file: "./src/routes/v1/employeeprofile.routes.ts", prefix: "/employee/profile", tag: "Employee Profile" },
   { file: "./src/routes/v1/address-lookup.routes.ts", prefix: "/address-lookup", tag: "Address Lookup" },
