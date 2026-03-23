@@ -68,12 +68,12 @@ router.get(
 
 // Approve request
 router.post(
-    "/:requestId/approve",
+    "/:userId/approve",
     /*
       #swagger.tags = ["Employee Password Request"]
       #swagger.summary = "Approve password reset request"
   
-      #swagger.parameters['requestId'] = {
+      #swagger.parameters['userId'] = {
         in: 'path',
         required: true,
         type: 'string'
@@ -84,12 +84,12 @@ router.post(
 
 // Reject request
 router.post(
-    "/:requestId/reject",
+    "/:userId/reject",
     /*
       #swagger.tags = ["Employee Password Request"]
       #swagger.summary = "Reject password reset request"
   
-      #swagger.parameters['requestId'] = {
+      #swagger.parameters['userId'] = {
         in: 'path',
         required: true,
         type: 'string'

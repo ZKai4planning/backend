@@ -293,6 +293,7 @@ export const createEmployeeUser = async (req: Request, res: Response) => {
       password: config.defaultPassword,
       passwordStatus: -1,
       passwordExpireFlag: 0,
+      resetPasswordStatus: "none",
       isActive: true,
     });
 
@@ -327,6 +328,7 @@ export const getEmployeeUsers = async (_req: Request, res: Response) => {
           region: employee.region,
           isActive: employee.isActive,
           roleId: employee.roleId,
+          resetPasswordStatus: employee.resetPasswordStatus,
           userId: employee.userId,
           roleName: role ? role.roleName : "Unknown",
           createdAt: (employee as any).createdAt,
@@ -414,6 +416,7 @@ export const getEmployeeByUserId = async (req: Request, res: Response) => {
       email: employee.email,
       region: employee.region,
       isActive: employee.isActive,
+      resetPasswordStatus: employee.resetPasswordStatus,
       role: {
         roleId: employee.roleId,
         roleName: role ? role.roleName : null,

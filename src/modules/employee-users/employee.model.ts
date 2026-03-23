@@ -58,6 +58,12 @@ const employeeSchema = new mongoose.Schema(
       default: 0,
     },
 
+    resetPasswordStatus: {
+      type: String,
+      enum: ["none", "pending", "approved", "rejected"],
+      default: "none",
+    },
+
     otp: {
       type: String,
       default: null,

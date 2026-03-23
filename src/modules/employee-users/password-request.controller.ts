@@ -53,6 +53,9 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
             status: "pending",
         });
 
+        employee.resetPasswordStatus = "pending";
+        await employee.save();
+
         // TODO: Notify admins (email / websocket / queue)
         const admins = await AdminUser.find({ isActive: true }).select("email");
 
@@ -64,7 +67,6 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
         return res.status(201).json({
             success: true,
             message: "Password reset request submitted successfully",
-            data: { requestId },
         });
     } catch (error) {
         console.error("requestPasswordReset:", error);
@@ -100,6 +102,7 @@ export const getPasswordRequests = async (req: Request, res: Response) => {
     // Execute queries in parallel
     const [requests, total] = await Promise.all([
       PasswordRequest.find(query)
+        .select("-requestId")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSize)
@@ -137,34 +140,30 @@ export const getPasswordRequests = async (req: Request, res: Response) => {
 ========================================================= */
 export const approvePasswordRequest = async (req: Request, res: Response) => {
     try {
-        const { requestId } = req.params;
+        const { userId } = req.params;
         const adminId = (req as any).user?.userId;
 
-        if (!requestId) {
+        if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "requestId is required",
+                message: "userId is required",
             });
         }
 
-        const request = await PasswordRequest.findOne({ requestId });
+        const request = await PasswordRequest.findOne({
+            userRefId: userId,
+            status: "pending",
+        });
 
         if (!request) {
             return res.status(404).json({
                 success: false,
-                message: "Request not found",
-            });
-        }
-
-        if (request.status !== "pending") {
-            return res.status(400).json({
-                success: false,
-                message: `Request already ${request.status}`,
+                message: "Pending request not found for this user",
             });
         }
 
         const employee = await Employee.findOne({
-            userId: request.userRefId,
+            userId,
         }).select(
             "+password +oldPassword +loginAttempts +lockUntil +otp +otpExpiresAt"
         );
@@ -189,6 +188,7 @@ export const approvePasswordRequest = async (req: Request, res: Response) => {
         employee.password = config.defaultPassword;
         employee.passwordStatus = -1; // force reset
         employee.passwordExpireFlag = 0;
+        employee.resetPasswordStatus = "approved";
         employee.loginAttempts = 0;
         employee.lockUntil = null;
         employee.otp = null;
@@ -230,23 +230,37 @@ export const approvePasswordRequest = async (req: Request, res: Response) => {
 ========================================================= */
 export const rejectPasswordRequest = async (req: Request, res: Response) => {
     try {
-        const { requestId } = req.params;
+        const { userId } = req.params;
         const { reason } = req.body; // optional
         const adminId = (req as any).user?.userId;
 
-        const request = await PasswordRequest.findOne({ requestId });
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "userId is required",
+            });
+        }
+
+        const request = await PasswordRequest.findOne({
+            userRefId: userId,
+            status: "pending",
+        });
 
         if (!request) {
             return res.status(404).json({
                 success: false,
-                message: "Request not found",
+                message: "Pending request not found for this user",
             });
         }
 
-        if (request.status !== "pending") {
-            return res.status(400).json({
+        const employee = await Employee.findOne({
+            userId,
+        });
+
+        if (!employee) {
+            return res.status(404).json({
                 success: false,
-                message: `Request already ${request.status}`,
+                message: "Employee not found",
             });
         }
 
@@ -255,6 +269,9 @@ export const rejectPasswordRequest = async (req: Request, res: Response) => {
         request.processedBy = adminId;
 
         await request.save();
+
+        employee.resetPasswordStatus = "rejected";
+        await employee.save();
 
         // Send rejection email
         await sendPasswordRequestRejectedEmail(request.email, reason);

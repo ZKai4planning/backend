@@ -1608,7 +1608,7 @@
         }
       }
     },
-    "/admin/password-requests/{requestId}/approve": {
+    "/admin/password-requests/{userId}/approve": {
       "post": {
         "tags": [
           "Employee Password Request"
@@ -1617,7 +1617,7 @@
         "description": "",
         "parameters": [
           {
-            "name": "requestId",
+            "name": "userId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1639,7 +1639,7 @@
         }
       }
     },
-    "/admin/password-requests/{requestId}/reject": {
+    "/admin/password-requests/{userId}/reject": {
       "post": {
         "tags": [
           "Employee Password Request"
@@ -1648,7 +1648,7 @@
         "description": "",
         "parameters": [
           {
-            "name": "requestId",
+            "name": "userId",
             "in": "path",
             "required": true,
             "type": "string"
