@@ -28,7 +28,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
         if (!employee) {
             return res.status(404).json({
                 success: false,
-                message: "Employee not found",
+                message: "If this email is registered, your password reset request has been sent to the administrator for approval.",
             });
         }
 
