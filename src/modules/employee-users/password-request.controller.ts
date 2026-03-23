@@ -20,59 +20,64 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
         if (!email) {
             return res.status(400).json({
                 success: false,
-                message: "Email is required",
+                message: "Email is required.",
             });
         }
+
+        // Always prepare the same response (security)
+        const genericResponse = {
+            success: true,
+            message:
+                "If an account with this email exists, a password reset request has been submitted for admin approval.",
+        };
 
         const employee = await Employee.findOne({ email });
-        if (!employee) {
-            return res.status(404).json({
-                success: false,
-                message: "If this email is registered, your password reset request has been sent to the administrator for approval.",
+
+        // If user exists → process request
+        if (employee) {
+            const existingRequest = await PasswordRequest.findOne({
+                userRefId: employee.userId,
+                status: "pending",
             });
+
+            // Only create request if no pending one exists
+            if (!existingRequest) {
+                const requestId = generateId();
+
+                await PasswordRequest.create({
+                    requestId,
+                    userRefId: employee.userId,
+                    email: employee.email,
+                    status: "pending",
+                });
+
+                // Notify admins (fail-safe)
+                try {
+                    const admins = await AdminUser.find({ isActive: true }).select("email");
+
+                    if (admins.length > 0) {
+                        await sendPasswordRequestNotificationToAdmins(
+                            admins.map((a) => a.email),
+                            employee.email
+                        );
+                    }
+                } catch (notifyError) {
+                    console.error("Admin notification failed:", notifyError);
+                    // Do NOT fail the request because of notification issues
+                }
+            }
+
+            // If already pending → silently ignore (security)
         }
 
-        const existingRequest = await PasswordRequest.findOne({
-            userRefId: employee.userId,
-            status: "pending",
-        });
+        // Always return same response
+        return res.status(200).json(genericResponse);
 
-        if (existingRequest) {
-            return res.status(409).json({
-                success: false,
-                message: "A password reset request is already pending",
-            });
-        }
-
-        const requestId = generateId();
-
-        await PasswordRequest.create({
-            requestId,
-            userRefId: employee.userId,
-            email: employee.email,
-            status: "pending",
-        });
-
-        employee.resetPasswordStatus = "pending";
-        await employee.save();
-
-        // TODO: Notify admins (email / websocket / queue)
-        const admins = await AdminUser.find({ isActive: true }).select("email");
-
-        await sendPasswordRequestNotificationToAdmins(
-            admins.map((a) => a.email),
-            employee.email
-        );
-
-        return res.status(201).json({
-            success: true,
-            message: "Password reset request submitted successfully",
-        });
     } catch (error) {
         console.error("requestPasswordReset:", error);
         return res.status(500).json({
             success: false,
-            message: "Server error",
+            message: "Something went wrong. Please try again later.",
         });
     }
 };

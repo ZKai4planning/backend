@@ -28,11 +28,11 @@ export const loginEmployee = async (req: Request, res: Response) => {
     );
 
     if (!employee) {
-      return res.status(404).json({ message: "Invalid credentials" });
+      return res.status(404).json({ message: "Invalid email or password." });
     }
 
     if (employee.region !== normalizedRegion) {
-      return res.status(403).json({ message: "Account not in this region" });
+      return res.status(403).json({ message: "Invalid email or password." });
     }
 
     if (employee.lockUntil && employee.lockUntil > new Date()) {
@@ -43,7 +43,7 @@ export const loginEmployee = async (req: Request, res: Response) => {
     }
 
     if (!employee.isActive) {
-      return res.status(403).json({ message: "Account is inactive" });
+      return res.status(403).json({ message: "Invalid email or password." });
     }
 
     let isPasswordValid = false;
@@ -67,7 +67,7 @@ export const loginEmployee = async (req: Request, res: Response) => {
       await employee.save();
 
       return res.status(401).json({
-        message: "Invalid credentials",
+        message: "Invalid email or password.",
         remainingAttempts: Math.max(0, MAX_LOGIN_ATTEMPTS - employee.loginAttempts),
         locked: employee.lockUntil && employee.lockUntil > new Date(),
       });
@@ -93,7 +93,7 @@ export const loginEmployee = async (req: Request, res: Response) => {
       employee.passwordStatus === -1 || employee.passwordExpireFlag === 1;
 
     res.status(200).json({
-      message: "OTP sent successfully",
+      message: "If the credentials are valid, an OTP has been sent to your registered email.",
       userId: employee.userId,
       mustResetPassword,
       otpExpiresAt: employee.otpExpiresAt,
