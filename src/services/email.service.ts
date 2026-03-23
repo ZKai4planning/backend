@@ -167,6 +167,55 @@ export const sendOtpEmail = async (
 //   }
 // };
 
+export const sendEmployeeWelcomeEmail = async (
+  email: string,
+  defaultPassword: string,
+  name?: string
+): Promise<BrevoSendEmailResponse> => {
+  logger.info(`Sending employee welcome email to ${email}`);
+
+  const payload = {
+    to: [{ email }],
+    subject: "Your Account Has Been Created",
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Welcome to Ai4Planning 🎉</h2>
+        
+        <p>Hello ${name || "User"},</p>
+        
+        <p>Your account has been successfully created by the administrator.</p>
+        
+        <p><strong>Login Email:</strong> ${email}</p>
+        
+        <p><strong>Temporary Password:</strong></p>
+        <h1 style="color: #4CAF50;">${defaultPassword}</h1>
+        
+        <p style="margin-top: 20px;">
+          ⚠️ For security reasons, please change your password immediately after logging in.
+        </p>
+
+        <p>If you did not expect this account, please contact your administrator.</p>
+        
+        <br/>
+        <p>Best regards,<br/>Ai4Planning Team</p>
+      </div>
+    `,
+    sender: {
+      email: "info@ai4planning.com",
+      name: "Ai4Planning",
+    },
+  };
+
+  try {
+    const { data } = await brevoClient.post("/smtp/email", payload);
+    logger.info(`Employee welcome email sent to ${email}`);
+    return data;
+  } catch (error: any) {
+    logger.error("Employee welcome email failed", error);
+    throw new Error("Failed to send employee welcome email");
+  }
+};
+
 
 export const sendPasswordRequestNotificationToAdmins = async (
   adminEmails: string[],

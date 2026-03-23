@@ -1,9 +1,6 @@
 import { Request, Response } from "express";
 import { generateId } from "../../utils/generators";
-import {
-  isValidEmail,
-  isValidIndiaUKPhoneNumber,
-} from "../../utils/validators";
+import { validateEmployeeRegionPhone } from "../../utils/PhoneNumberValidator.util";
 import cloudinary from "../../config/cloudinary";
 import { Employee } from "../employee-users/employee.model";
 import { EmployeeProfile } from "./employeeprofile.model";
@@ -107,15 +104,18 @@ export const updateEmployeeProfileByUserId = async (
       email?: unknown;
       phoneNumber?: unknown;
     };
+    const employee = await Employee.findOne({ userId });
+
+    if (!employee) {
+      return res.status(404).json({ message: "Employee user not found" });
+    }
 
     const profileUpdates: {
       name?: string;
-      email?: string;
       phoneNumber?: string;
     } = {};
     const employeeUpdates: {
       name?: string;
-      email?: string;
     } = {};
 
     if (name !== undefined) {
@@ -131,46 +131,40 @@ export const updateEmployeeProfileByUserId = async (
     }
 
     if (email !== undefined) {
-      if (typeof email !== "string" || !isValidEmail(email.trim())) {
-        return res.status(400).json({ message: "`email` is invalid" });
-      }
-      const normalizedEmail = email.trim().toLowerCase();
-      profileUpdates.email = normalizedEmail;
-      employeeUpdates.email = normalizedEmail;
+      return res.status(400).json({
+        message: "Employee email cannot be updated once created",
+      });
     }
 
     if (phoneNumber !== undefined) {
-      if (
-        typeof phoneNumber !== "string" ||
-        !isValidIndiaUKPhoneNumber(phoneNumber)
-      ) {
+      if (typeof phoneNumber !== "string") {
         return res.status(400).json({
-          message: "`phoneNumber` must be a valid Indian or UK phone number",
+          message: "`phoneNumber` must be a string",
         });
       }
-      profileUpdates.phoneNumber = phoneNumber.trim();
+
+      const phoneValidation = validateEmployeeRegionPhone(
+        employee.region,
+        phoneNumber
+      );
+
+      if (!phoneValidation.valid || !phoneValidation.number) {
+        const regionMessage =
+          employee.region === "uk"
+            ? "`phoneNumber` must be a valid UK mobile or landline number"
+            : "`phoneNumber` must be a valid Indian mobile or landline number";
+        return res.status(400).json({
+          message: regionMessage,
+        });
+      }
+
+      profileUpdates.phoneNumber = phoneValidation.number;
     }
 
     if (!Object.keys(profileUpdates).length) {
       return res.status(400).json({
-        message: "Provide at least one of: name, email, phoneNumber",
+        message: "Provide at least one of: name, phoneNumber",
       });
-    }
-
-    const employee = await Employee.findOne({ userId });
-    if (!employee) {
-      return res.status(404).json({ message: "Employee user not found" });
-    }
-
-    if (
-      employeeUpdates.email &&
-      employeeUpdates.email !== employee.email &&
-      (await Employee.findOne({
-        email: employeeUpdates.email,
-        userId: { $ne: userId },
-      }))
-    ) {
-      return res.status(400).json({ message: "Email already in use" });
     }
 
     if (Object.keys(employeeUpdates).length) {
@@ -180,7 +174,7 @@ export const updateEmployeeProfileByUserId = async (
     const profile = await upsertEmployeeProfile({
       userId,
       name: employeeUpdates.name ?? employee.name,
-      email: employeeUpdates.email ?? employee.email,
+      email: employee.email,
       phoneNumber: profileUpdates.phoneNumber,
     });
 
@@ -189,9 +183,6 @@ export const updateEmployeeProfileByUserId = async (
       profile,
     });
   } catch (error: any) {
-    if (error?.code === 11000) {
-      return res.status(400).json({ message: "Email already in use" });
-    }
     console.error("Update Employee Profile Error:", error);
     return res.status(500).json({ message: "Server error" });
   }

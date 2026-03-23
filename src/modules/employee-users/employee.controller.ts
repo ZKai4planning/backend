@@ -5,7 +5,7 @@ import { Role } from "../role-permissions/role.model";
 import { generateId, generateOTP } from "../../utils/generators";
 import { generateToken }  from "../../security/jwtService";
 import { Configuration } from "../admin-configuration/config.model";
-import { sendOtpEmail } from "../../services/email.service";
+import { sendEmployeeWelcomeEmail, sendOtpEmail } from "../../services/email.service";
 import { STATUS_CODES } from "http";
 
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -296,6 +296,13 @@ export const createEmployeeUser = async (req: Request, res: Response) => {
       isActive: true,
     });
 
+    // Send email after successful creation
+    await sendEmployeeWelcomeEmail(
+      normalizedEmail,
+      config.defaultPassword,
+      name
+    );
+
     res.status(201).json({
       message: "Employee created successfully",
       employee,
@@ -340,6 +347,12 @@ export const updateEmployeeByUserId = async (req: Request, res: Response) => {
     const { userid: userId } = req.params;
     const { name, email, roleId, region, isActive } = req.body;
 
+    if (email !== undefined) {
+      return res.status(400).json({
+        message: "Employee email cannot be updated once created",
+      });
+    }
+
     if (roleId) {
       const role = await Role.findOne({ roleId, status: 0 });
       if (!role) {
@@ -351,7 +364,6 @@ export const updateEmployeeByUserId = async (req: Request, res: Response) => {
 
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
-    if (email !== undefined) updateData.email = email;
     if (roleId !== undefined) updateData.roleId = roleId;
     if (region !== undefined) updateData.region = region;
     if (isActive !== undefined) updateData.isActive = isActive;

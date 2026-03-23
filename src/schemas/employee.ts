@@ -50,10 +50,13 @@ export const updateEmployeeSchema = z.object({
     (val) => val === undefined || /^[A-Za-z\s]+$/.test(val),
     "Name can contain only letters and spaces"
   ),
-  email: optionalString.refine(
-    (val) => val === undefined || z.string().email().safeParse(val).success,
-    "Invalid email address"
-  ),
+  email: z
+    .any()
+    .optional()
+    .refine(
+      (val) => val === undefined,
+      "Email cannot be updated once employee is created"
+    ),
   roleId: optionalString.refine(
     (val) => val === undefined || val.length > 0,
     "RoleId cannot be empty"
