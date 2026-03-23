@@ -20,9 +20,12 @@ const REGION_TO_COUNTRY_CODE: Record<EmployeeRegion, CountryCode> = {
 
 const ALLOWED_PHONE_CHARACTERS_REGEX = /^[+\d\s\-()]+$/;
 const UK_MOBILE_REGEX = /^(?:\+44|0)7\d{9}$/;
+const UK_MOBILE_NO_PREFIX_REGEX = /^7\d{9}$/;
 const UK_LANDLINE_REGEX = /^(?:\+44|0)[123]\d{9}$/;
-const INDIA_MOBILE_REGEX = /^(?:\+91|0)?[6-9]\d{9}$/;
-const INDIA_LANDLINE_REGEX = /^(?:\+91|0)?[1-5]\d{7,11}$/;
+const INDIA_MOBILE_REGEX = /^(?:\+91|0)[6-9]\d{9}$/;
+const INDIA_MOBILE_NO_PREFIX_REGEX = /^[6-9]\d{9}$/;
+const INDIA_LANDLINE_REGEX = /^(?:\+91|0)[1-5]\d{7,11}$/;
+const INDIA_LANDLINE_NO_PREFIX_REGEX = /^[1-5]\d{7,11}$/;
 
 const stripFormattingCharacters = (phone: string) => phone.replace(/[\s\-()]/g, "");
 
@@ -45,6 +48,10 @@ const normalizeUkPhoneNumber = (phone: string) => {
     return phone.startsWith("+44") ? phone : `+44${phone.slice(1)}`;
   }
 
+  if (UK_MOBILE_NO_PREFIX_REGEX.test(phone)) {
+    return `+44${phone}`;
+  }
+
   return null;
 };
 
@@ -54,7 +61,11 @@ const normalizeIndianPhoneNumber = (phone: string) => {
       return phone;
     }
 
-    return phone.startsWith("0") ? `+91${phone.slice(1)}` : `+91${phone}`;
+    return `+91${phone.slice(1)}`;
+  }
+
+  if (INDIA_MOBILE_NO_PREFIX_REGEX.test(phone)) {
+    return `+91${phone}`;
   }
 
   if (INDIA_LANDLINE_REGEX.test(phone)) {
@@ -62,7 +73,11 @@ const normalizeIndianPhoneNumber = (phone: string) => {
       return phone;
     }
 
-    return phone.startsWith("0") ? `+91${phone.slice(1)}` : `+91${phone}`;
+    return `+91${phone.slice(1)}`;
+  }
+
+  if (INDIA_LANDLINE_NO_PREFIX_REGEX.test(phone)) {
+    return `+91${phone}`;
   }
 
   return null;

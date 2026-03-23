@@ -1,4 +1,7 @@
-import { validatePhone } from "./PhoneNumberValidator.util";
+import {
+  validateEmployeeRegionPhone,
+  validatePhone,
+} from "./PhoneNumberValidator.util";
 
 export const isValidEmail = (value: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -13,8 +16,7 @@ export const isValidInternationalPhone = (value: string) => {
 };
 
 export const isValidIndianPhone = (value: string) => {
-  const phone = value.replace(/\s/g, "");
-  return /^\+91[6-9]\d{9}$/.test(phone);
+  return validateEmployeeRegionPhone("in", value).valid;
 };
 
 export const isValidIndiaUKPhoneNumber = (value: string) => {
