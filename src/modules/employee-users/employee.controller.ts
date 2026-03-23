@@ -28,7 +28,7 @@ export const loginEmployee = async (req: Request, res: Response) => {
     );
 
     if (!employee) {
-      return res.status(404).json({ message: "Account not found" });
+      return res.status(404).json({ message: "Invalid credentials" });
     }
 
     if (employee.region !== normalizedRegion) {
