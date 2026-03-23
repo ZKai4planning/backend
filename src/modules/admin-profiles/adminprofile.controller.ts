@@ -257,3 +257,82 @@ export const getAdminProfilePictureByUserId = async (
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getAdminProfileStatusByUserId = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const userId = String(req.params.userId);
+
+    // Check admin user exists
+    const admin = await AdminUser.findOne({ userId });
+    if (!admin) {
+      return res.status(404).json({ message: "Admin user not found" });
+    }
+
+    let profile = await AdminProfile.findOne({ userRefId: userId });
+
+    // Create default profile if not exists
+    if (!profile) {
+      profile = await upsertAdminProfile({
+        userId: admin.userId,
+        name: admin.name,
+        email: admin.email,
+        phoneNumber: "",
+        profilePicture: "",
+      });
+    }
+
+    // Safety check
+    if (!profile) {
+      return res.status(500).json({ message: "Failed to create profile" });
+    }
+
+    // Completion logic
+    const totalFields = 4;
+    let completedFields = 0;
+
+    const fieldStatus = {
+      name: false,
+      email: false,
+      phoneNumber: false,
+      profilePicture: false,
+    };
+
+    if (profile.name) {
+      completedFields++;
+      fieldStatus.name = true;
+    }
+
+    if (profile.email) {
+      completedFields++;
+      fieldStatus.email = true;
+    }
+
+    if (profile.phoneNumber) {
+      completedFields++;
+      fieldStatus.phoneNumber = true;
+    }
+
+    if (profile.profilePicture) {
+      completedFields++;
+      fieldStatus.profilePicture = true;
+    }
+
+    const completionPercentage = Math.round(
+      (completedFields / totalFields) * 100
+    );
+
+    return res.json({
+      userId,
+      completionPercentage,
+      completedFields,
+      totalFields,
+      fieldStatus,
+    });
+  } catch (error) {
+    console.error("Get Admin Profile Status Error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};

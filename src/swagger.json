@@ -1356,6 +1356,34 @@
         "autoBody": false
       }
     },
+    "/admin/profile/{userId}/status": {
+      "get": {
+        "tags": [
+          "Admin Profile"
+        ],
+        "summary": "Get admin profile completion status",
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/employee/auth/login": {
       "post": {
         "description": "",
@@ -1551,17 +1579,11 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": "Created"
+          "200": {
+            "description": "OK"
           },
           "400": {
             "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "409": {
-            "description": "Conflict"
           },
           "500": {
             "description": "Internal Server Error"

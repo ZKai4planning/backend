@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getAdminProfileByUserId,
   getAdminProfilePictureByUserId,
+  getAdminProfileStatusByUserId,
   updateAdminProfileByUserId,
   updateAdminProfilePictureByUserId,
 } from "../../modules/admin-profiles/adminprofile.controller";
@@ -86,6 +87,21 @@ router.put(
   */
   upload.single("profilePicture"),
   updateAdminProfilePictureByUserId
+);
+
+router.get(
+  "/:userId/status",
+  /*
+    #swagger.tags = ["Admin Profile"]
+    #swagger.summary = "Get admin profile completion status"
+
+    #swagger.parameters['userId'] = {
+      in: 'path',
+      required: true,
+      type: 'string'
+    }
+  */
+  getAdminProfileStatusByUserId
 );
 
 export default router;
