@@ -1,10 +1,14 @@
 import { Request, Response } from "express";
-import bcrypt from "bcryptjs";
 import { Employee } from "../employee-users/employee.model";
 import { PasswordRequest } from "./password-request.model";
-import { generateId, generateSecurePassword } from "../../utils/generators";
-import { sendNewPasswordEmail, sendPasswordRequestNotificationToAdmins, sendPasswordRequestRejectedEmail } from "../../services/email.service";
+import { generateId } from "../../utils/generators";
+import {
+  sendPasswordResetApprovedEmail,
+  sendPasswordRequestNotificationToAdmins,
+  sendPasswordRequestRejectedEmail,
+} from "../../services/email.service";
 import { AdminUser } from "../admin-users/adminuser.model";
+import { Configuration } from "../admin-configuration/config.model";
 
 /* =========================================================
    1. Employee → Raise Password Reset Request
@@ -161,7 +165,9 @@ export const approvePasswordRequest = async (req: Request, res: Response) => {
 
         const employee = await Employee.findOne({
             userId: request.userRefId,
-        }).select("+password +oldPassword");
+        }).select(
+            "+password +oldPassword +loginAttempts +lockUntil +otp +otpExpiresAt"
+        );
 
         if (!employee) {
             return res.status(404).json({
@@ -170,17 +176,23 @@ export const approvePasswordRequest = async (req: Request, res: Response) => {
             });
         }
 
-        /* ---------- Generate New Password ---------- */
-        const newPasswordPlain = generateSecurePassword(); // or stronger generator
-        const hashedPassword = await bcrypt.hash(newPasswordPlain, 10);
-        console.log("New Password: ", newPasswordPlain)
+        const config = await Configuration.findOne();
+        if (!config?.defaultPassword || !config?.plainDefaultPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Default password not configured",
+            });
+        }
 
         /* ---------- Update Employee ---------- */
         employee.oldPassword = employee.password;
-        employee.password = hashedPassword;
-
+        employee.password = config.defaultPassword;
         employee.passwordStatus = -1; // force reset
         employee.passwordExpireFlag = 0;
+        employee.loginAttempts = 0;
+        employee.lockUntil = null;
+        employee.otp = null;
+        employee.otpExpiresAt = null;
 
         // Optional: 180-day expiry
         // employee.passwordExpiresAt = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
@@ -195,11 +207,14 @@ export const approvePasswordRequest = async (req: Request, res: Response) => {
         await request.save();
 
         /* ---------- Send Email ---------- */
-        await sendNewPasswordEmail(employee.email, newPasswordPlain);
+        await sendPasswordResetApprovedEmail(
+            employee.email,
+            config.plainDefaultPassword
+        );
 
         return res.status(200).json({
             success: true,
-            message: "Password reset approved and sent successfully",
+            message: "Password reset approved successfully",
         });
     } catch (error) {
         console.error("approvePasswordRequest:", error);

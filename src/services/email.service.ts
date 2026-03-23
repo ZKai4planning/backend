@@ -201,22 +201,23 @@ export const sendPasswordRequestNotificationToAdmins = async (
   }
 };
 
-export const sendNewPasswordEmail = async (
+export const sendPasswordResetApprovedEmail = async (
   email: string,
-  newPassword: string
+  defaultPassword: string
 ): Promise<BrevoSendEmailResponse> => {
-  logger.info(`Sending new password email to ${email}`);
+  logger.info(`Sending password reset approval email to ${email}`);
 
   const payload = {
     to: [{ email }],
-    subject: "Your New Temporary Password",
+    subject: "Password Reset Approved",
     htmlContent: `
       <div style="font-family: Arial, sans-serif;">
-        <h2>Password Reset</h2>
-        <p>Your password has been reset by the admin.</p>
-        <p><strong>Temporary Password:</strong></p>
-        <h1 style="color: #4CAF50;">${newPassword}</h1>
-        <p>This password is temporary. Please login and change it immediately.</p>
+        <h2>Password Reset Approved</h2>
+        <p>Your password reset request has been approved by the admin.</p>
+        <p>Please login using the default password below:</p>
+        <p><strong>Default Password:</strong></p>
+        <h1 style="color: #4CAF50;">${defaultPassword}</h1>
+        <p>Please change your password immediately after login.</p>
       </div>
     `,
     sender: {
@@ -227,11 +228,11 @@ export const sendNewPasswordEmail = async (
 
   try {
     const { data } = await brevoClient.post("/smtp/email", payload);
-    logger.info(`New password email sent to ${email}`);
+    logger.info(`Password reset approval email sent to ${email}`);
     return data;
   } catch (error: any) {
-    logger.error("New password email failed", error);
-    throw new Error("Failed to send new password email");
+    logger.error("Password reset approval email failed", error);
+    throw new Error("Failed to send password reset approval email");
   }
 };
 
