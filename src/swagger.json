@@ -1821,6 +1821,34 @@
         "autoBody": false
       }
     },
+    "/employee/profile/{userId}/status": {
+      "get": {
+        "tags": [
+          "Employee Profile"
+        ],
+        "summary": "Get employee profile completion status",
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/address-lookup": {
       "post": {
         "description": "",

@@ -346,14 +346,14 @@ export const permanentlyDeleteProjectStage = async (
   req: Request,
   res: Response
 ) => {
-  const session = await mongoose.startSession();
+  // const session = await mongoose.startSession();
 
   try {
     const { stageId } = req.params;
 
-    session.startTransaction();
+    // session.startTransaction();
 
-    const stage = await ProjectStage.findOne({ stageId }).session(session);
+    const stage = await ProjectStage.findOne({ stageId });
 
     if (!stage) {
       return res.status(404).json({
@@ -362,16 +362,16 @@ export const permanentlyDeleteProjectStage = async (
       });
     }
 
-    await ProjectStage.deleteOne({ _id: stage._id }).session(session);
+    await ProjectStage.deleteOne({ _id: stage._id });
 
-    await session.commitTransaction();
+    // await session.commitTransaction();
 
     return res.status(200).json({
       success: true,
       message: "Stage permanently deleted"
     });
   } catch (error) {
-    await session.abortTransaction();
+    // await session.abortTransaction();
 
     console.error(error);
 
@@ -379,8 +379,6 @@ export const permanentlyDeleteProjectStage = async (
       success: false,
       message: "Failed to delete stage"
     });
-  } finally {
-    session.endSession();
   }
 };
 

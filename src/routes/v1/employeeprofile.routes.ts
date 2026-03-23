@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getEmployeeProfileByUserId,
   getEmployeeProfilePictureByUserId,
+  getEmployeeProfileStatusByUserId,
   updateEmployeeProfileByUserId,
   updateEmployeeProfilePictureByUserId,
 } from "../../modules/employee-profiles/employeeprofile.controller";
@@ -86,6 +87,21 @@ router.put(
   */
   upload.single("profilePicture"),
   updateEmployeeProfilePictureByUserId
+);
+
+router.get(
+  "/:userId/status",
+  /*
+    #swagger.tags = ["Employee Profile"]
+    #swagger.summary = "Get employee profile completion status"
+
+    #swagger.parameters['userId'] = {
+      in: 'path',
+      required: true,
+      type: 'string'
+    }
+  */
+  getEmployeeProfileStatusByUserId
 );
 
 export default router;

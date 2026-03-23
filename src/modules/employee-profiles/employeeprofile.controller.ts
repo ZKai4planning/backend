@@ -262,3 +262,81 @@ export const getEmployeeProfilePictureByUserId = async (
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getEmployeeProfileStatusByUserId = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const userId = String(req.params.userId);
+
+    const employee = await Employee.findOne({ userId });
+    if (!employee) {
+      return res.status(404).json({ message: "Employee user not found" });
+    }
+
+    let profile = await EmployeeProfile.findOne({ userRefId: userId });
+
+    // If profile doesn't exist → create default
+    if (!profile) {
+      profile = await upsertEmployeeProfile({
+        userId: employee.userId,
+        name: employee.name,
+        email: employee.email,
+        phoneNumber: "",
+        profilePicture: "",
+      });
+    }
+
+    // Final safety check (for TS + runtime safety)
+    if (!profile) {
+      return res.status(500).json({ message: "Failed to create profile" });
+    }
+
+    // Completion logic
+    let totalFields = 4;
+    let completedFields = 0;
+
+    const fieldStatus = {
+      name: false,
+      email: false,
+      phoneNumber: false,
+      profilePicture: false,
+    };
+
+    if (profile.name) {
+      completedFields++;
+      fieldStatus.name = true;
+    }
+
+    if (profile.email) {
+      completedFields++;
+      fieldStatus.email = true;
+    }
+
+    if (profile.phoneNumber) {
+      completedFields++;
+      fieldStatus.phoneNumber = true;
+    }
+
+    if (profile.profilePicture) {
+      completedFields++;
+      fieldStatus.profilePicture = true;
+    }
+
+    const completionPercentage = Math.round(
+      (completedFields / totalFields) * 100
+    );
+
+    return res.json({
+      userId,
+      completionPercentage,
+      completedFields,
+      totalFields,
+      fieldStatus,
+    });
+  } catch (error) {
+    console.error("Get Profile Status Error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};

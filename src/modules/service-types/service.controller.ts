@@ -477,39 +477,35 @@ export const restoreService = async (req: Request, res: Response) => {
 /* -------------------------------- */
 
 export const permanentlyDeleteService = async (req: Request, res: Response) => {
-  const session = await mongoose.startSession();
+  // const session = await mongoose.startSession();
 
   try {
     const { serviceId } = req.params;
 
-    session.startTransaction();
+    // session.startTransaction();
 
-    const service = await Service.findOne({ serviceId }).session(session);
+    const service = await Service.findOne({ serviceId });
     if (!service) return res.status(404).json({ success: false, message: "Service not found" });
 
     await removeCloudinaryImage(service.image);
 
-    const subServices = await SubService.find({ service: service._id }).session(
-      session
-    );
+    const subServices = await SubService.find({ service: service._id });
 
     for (const sub of subServices) {
       await removeCloudinaryImage(sub.image);
     }
 
-    await SubService.deleteMany({ service: service._id }).session(session);
-    await Service.deleteOne({ _id: service._id }).session(session);
+    await SubService.deleteMany({ service: service._id });
+    await Service.deleteOne({ _id: service._id });
 
-    await session.commitTransaction();
+    // await session.commitTransaction();
 
     return res.status(200).json({ success: true, message: "Service permanently deleted" });
   } catch (error) {
-    await session.abortTransaction();
+    // await session.abortTransaction();
     console.error(error);
     return res.status(500).json({ success: false, message: "Failed to permanently delete service" });
-  } finally {
-    session.endSession();
-  }
+  } 
 };
 
 /* -------------------------------- */

@@ -243,16 +243,14 @@ export const permanentlyDeleteSubService = async (
   req: Request,
   res: Response
 ) => {
-  const session = await mongoose.startSession();
+  // const session = await mongoose.startSession();
 
   try {
     const { subServiceId } = req.params;
 
-    session.startTransaction();
+    // session.startTransaction();
 
-    const subService = await SubService.findOne({ subServiceId }).session(
-      session
-    );
+    const subService = await SubService.findOne({ subServiceId });
 
     if (!subService) return res.status(404).json({ success: false, message: "Subservice not found" });
 
@@ -261,19 +259,17 @@ export const permanentlyDeleteSubService = async (
     await Service.updateOne(
       { _id: subService.service },
       { $pull: { subServices: subService._id } }
-    ).session(session);
+    );
 
-    await SubService.deleteOne({ _id: subService._id }).session(session);
+    await SubService.deleteOne({ _id: subService._id });
 
-    await session.commitTransaction();
+    // await session.commitTransaction();
 
     return res.status(200).json({ success: true, message: "Subservice permanently deleted" });
   } catch (error) {
-    await session.abortTransaction();
+    // await session.abortTransaction();
     console.error(error);
     return res.status(500).json({ success: false, message: "Failed to delete subservice" });
-  } finally {
-    session.endSession();
   }
 };
 
