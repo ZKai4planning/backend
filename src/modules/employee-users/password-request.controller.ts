@@ -51,6 +51,9 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
                     status: "pending",
                 });
 
+                employee.resetPasswordStatus = "pending";
+                await employee.save();
+
                 // Notify admins (fail-safe)
                 try {
                     const admins = await AdminUser.find({ isActive: true }).select("email");
