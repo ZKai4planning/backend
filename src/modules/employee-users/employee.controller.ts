@@ -300,7 +300,7 @@ export const createEmployeeUser = async (req: Request, res: Response) => {
     // Send email after successful creation
     await sendEmployeeWelcomeEmail(
       normalizedEmail,
-      config.defaultPassword,
+      config.plainDefaultPassword,
       name
     );
 
