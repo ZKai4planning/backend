@@ -321,6 +321,8 @@ export const getEmployeeUsers = async (_req: Request, res: Response) => {
     const employeesWithRoleName = await Promise.all(
       employees.map(async (employee) => {
         const role = await Role.findOne({ roleId: employee.roleId });
+        const resetPasswordStatus = employee.resetPasswordStatus || "none";
+
         return {
           id: employee._id,
           name: employee.name,
@@ -328,7 +330,7 @@ export const getEmployeeUsers = async (_req: Request, res: Response) => {
           region: employee.region,
           isActive: employee.isActive,
           roleId: employee.roleId,
-          resetPasswordStatus: employee.resetPasswordStatus,
+          resetPasswordStatus,
           userId: employee.userId,
           roleName: role ? role.roleName : "Unknown",
           createdAt: (employee as any).createdAt,
@@ -409,6 +411,7 @@ export const getEmployeeByUserId = async (req: Request, res: Response) => {
     }
 
     const role = await Role.findOne({ roleId: employee.roleId });
+    const resetPasswordStatus = employee.resetPasswordStatus || "none";
 
     res.json({
       userId: employee.userId,
@@ -416,7 +419,7 @@ export const getEmployeeByUserId = async (req: Request, res: Response) => {
       email: employee.email,
       region: employee.region,
       isActive: employee.isActive,
-      resetPasswordStatus: employee.resetPasswordStatus,
+      resetPasswordStatus,
       role: {
         roleId: employee.roleId,
         roleName: role ? role.roleName : null,
